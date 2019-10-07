@@ -1,3 +1,7 @@
+/* CITS2002 Project 2 2019
+   Name(s):             Frinze Lapuz, Thye Shan Ng
+   Student number(s):   22711649, 22727425
+ */
 #include "../sifs.h"
 #include "md5.h"
 
@@ -7,10 +11,6 @@
 #define SIFS_MIN_BLOCKSIZE 1024
 
 #define SIFS_MAX_NAME_LENGTH 32 // including the NULL byte
-/* CITS2002 Project 2 2019
-   Name(s):             Frinze Lapuz, Thye Shan Ng
-   Student number(s):   22711649, 22727425
- */
 
 #define SIFS_MAX_ENTRIES 24 // for both directory and file entries
 
