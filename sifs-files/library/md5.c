@@ -1,3 +1,8 @@
+/* CITS2002 Project 2 2019
+   Name(s):             Frinze Lapuz, Thye Shan Ng
+   Student number(s):   22711649, 22727425
+ */
+
 //  From code at:    https://rosettacode.org/wiki/MD5#C
 //  Refactored by Chris.McDonald@uwa.edu.au
 //  simple enough that I can almost understand it!
