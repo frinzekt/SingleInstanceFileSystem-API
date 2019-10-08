@@ -2,12 +2,49 @@
    Name(s):             Frinze Lapuz, Thye Shan Ng
    Student number(s):   22711649, 22727425
  */
-
+#include <stdio.h> //REVIEW  Remove
 #include "sifs-internal.h"
 
 // make a new directory within an existing volume
 int SIFS_mkdir(const char *volumename, const char *pathname)
 {
+    //CHECKS EXISTING DIRECTORY NAME
+
+    // FIXME  For now assume pathname is single string
+    SIFS_DIRBLOCK dir_block = {
+        .name = "a", //FIXME
+        .modtime = time(NULL),
+        .nentries = 0,
+    };
+
+    FILE *fp = fopen(volumename, "r+");
+
+    if (fp != NULL)
+    {
+        //READ HEADER
+        SIFS_VOLUME_HEADER header;
+        fread(&header, sizeof header, 1, fp);
+        printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
+
+        //READ BITMAP
+        SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1);
+        fread(bitmap, 1, header.nblocks, fp);
+        printf("%s %d\n", bitmap, (int)(header.nblocks));
+
+        fclose(fp);
+    }
+    else
+    {
+        // FILE NOT FOUND
+    }
+
+    //REVIEW Remove
+    printf("%s\n", volumename);
+    printf("%s\n", pathname);
+    printf("%s\n", dir_block.name);
+    printf("%ld\n", dir_block.modtime);
+    printf("%d\n", dir_block.nentries);
+
     SIFS_errno = SIFS_ENOTYET;
     return 1;
 }
