@@ -17,7 +17,7 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
         .nentries = 0,
     };
 
-    FILE *fp = fopen(volumename, "r");
+    FILE *fp = fopen(volumename, "r+");
 
     if (fp != NULL)
     {
@@ -30,6 +30,12 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
         SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1);
         fread(bitmap, 1, header.nblocks, fp);
         printf("%s %d\n", bitmap, (int)(header.nblocks));
+
+        fclose(fp);
+    }
+    else
+    {
+        // FILE NOT FOUND
     }
 
     //REVIEW Remove
