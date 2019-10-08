@@ -1,0 +1,6 @@
+
+*.o
+sifs-files/sifs_mkvolume
+sifs-files/sifs_dirinfo
+sifs-files/libsifs.a
+sifs-files/library/libsifs.a
