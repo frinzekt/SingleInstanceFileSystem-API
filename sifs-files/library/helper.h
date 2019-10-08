@@ -7,11 +7,14 @@
 
 */
 
+extern SIFS_VOLUME_HEADER getHeader(const char *volumename);
+extern SIFS_BIT *getBitmapPtr(const char *volumename);
+
 //Returns pointer that points to array of pointer pointing to strings
 //Can be done with char *words[number of words]
 extern char **getSplitPath(const char *pathname);
-extern int getDirBlockIdByName(int currentBlockID, const char *dirname);
-extern int getFileBlockIdByName(int currentBlockID, const char *filename);
+extern int getDirBlockIdByName(const char *volumename, int currentBlockID, const char *dirname);
+extern int getFileBlockIdByName(const char *volumename, int currentBlockID, const char *filename);
 
-extern SIFS_DIRBLOCK getDirBlockById(int currentBlockID);
-extern SIFS_FILEBLOCK getFileBlockById(int currentBlockID);
+extern SIFS_DIRBLOCK getDirBlockById(const char *volumename, int currentBlockID);
+extern SIFS_FILEBLOCK getFileBlockById(const char *volumename, int currentBlockID);
