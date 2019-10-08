@@ -7,23 +7,42 @@
 #include <time.h>
 
 #include "sifs-internal.h"
+#include "helper.h"
 
-void info_print(void)
+char file_arr[24][32];              //file, or rather variable that stores directory path name
+char (*file_ptr)[32] = file_arr;    //pointer to file array
+
+// void info_print(void)
+// {
+//     //printf("contents of blockID = %i:\n\n", /*number*/);
+//     printf("struct {\n");
+//     //printf("\t\tname = \"%c\"\n", /*dirname*/);
+//     //printf("modified = %i (%c)\n", /*unix*/ /*actual date n time*/);
+//     // printf("nentries = %i\n\n", /*entry no*/);
+
+//     for (int i = 0; i < SIFS_MAX_ENTRIES; i++)
+//     {
+//         //printf("\tentries[%2i] = %c\n", /*block file index*/)
+//     }
+
+//     printf("} SIFS_DIRBLOCK;\n");
+// }
+
+void blockID(char *path)
 {
-    //printf("contents of blockID = %i:\n\n", /*number*/);
-    printf("struct {\n");
-    //printf("\t\tname = \"%c\"\n", /*dirname*/);
-    //printf("modified = %i (%c)\n", /*unix*/ /*actual date n time*/);
-    // printf("nentries = %i\n\n", /*entry no*/);
+    //NOT SURE WHAT TO RENAME IT, BUT FOR NOW blockID, THIS FUNCTION SPLITS path name via '/' separately
+    char *token;
 
-    for (int i = 0; i < SIFS_MAX_ENTRIES; i++)
+    token = strtok(path, "/");
+
+    while (token != NULL)
     {
-        //printf("\tentries[%2i] = %c\n", /*block file index*/)
+        strcpy(*file_ptr, token);
+        file_ptr++;
+        token = strtok(NULL, "/");
     }
 
-    printf("} SIFS_DIRBLOCK;\n");
 }
-
 // get information about a requested directory
 int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
@@ -31,7 +50,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     //FIXME  FOR NOW ASSUME PATHNAME IS from root directory
     /*  SIFS_DIRBLOCK dir = {
         .name = }*/
-
+    blockID(pathname);
     SIFS_errno = SIFS_ENOTYET;
     return 1;
 }
