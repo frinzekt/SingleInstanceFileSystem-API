@@ -29,8 +29,8 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
 {
     //FIXME  FOR NOW ASSUME PATHNAME IS from root directory
-    SIFS_DIRBLOCK dir = {
-        .name = }
+    /*  SIFS_DIRBLOCK dir = {
+        .name = }*/
 
     SIFS_errno = SIFS_ENOTYET;
     return 1;
