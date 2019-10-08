@@ -25,3 +25,8 @@ clean:
 	rm -f $(LIBRARY) $(APPLICATIONS)
 	make -C library clean
 
+remake:
+	rm -f $(LIBRARY) $(APPLICATIONS)
+	make -C library clean
+	make
+
