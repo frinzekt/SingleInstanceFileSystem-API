@@ -8,7 +8,7 @@
 */
 
 extern SIFS_VOLUME_HEADER getHeader(const char *volumename);
-extern SIFS_BIT *getBitmapPtr(const char *volumename);
+extern SIFS_BIT *getBitmapPtr(const char *volumename, SIFS_VOLUME_HEADER header);
 
 //Returns pointer that points to array of pointer pointing to strings
 //Can be done with char *words[number of words]
