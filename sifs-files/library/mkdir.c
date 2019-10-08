@@ -17,26 +17,8 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
         .nentries = 0,
     };
 
-    FILE *fp = fopen(volumename, "r+");
-
-    if (fp != NULL)
-    {
-        //READ HEADER
-        SIFS_VOLUME_HEADER header;
-        fread(&header, sizeof header, 1, fp);
-        printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
-
-        //READ BITMAP
-        SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1);
-        fread(bitmap, 1, header.nblocks, fp);
-        printf("%s %d\n", bitmap, (int)(header.nblocks));
-
-        fclose(fp);
-    }
-    else
-    {
-        // FILE NOT FOUND
-    }
+    SIFS_VOLUME_HEADER header = getHeader(volumename);
+    SIFS_BIT *bitmap = getBitmapPtr(volumename, header);
 
     //REVIEW Remove
     printf("%s\n", volumename);
