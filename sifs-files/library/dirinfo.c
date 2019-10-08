@@ -9,6 +9,8 @@
 int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
 {
-    SIFS_errno	= SIFS_ENOTYET;
+    //FIXME  FOR NOW ASSUME PATHNAME IS from root directory
+
+    SIFS_errno = SIFS_ENOTYET;
     return 1;
 }
