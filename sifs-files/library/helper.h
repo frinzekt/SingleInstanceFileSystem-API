@@ -15,4 +15,3 @@ extern int getFileBlockIdByName(int currentBlockID, const char *filename);
 
 extern SIFS_DIRBLOCK getDirBlockById(int currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(int currentBlockID);
-extern void testPrint(void);

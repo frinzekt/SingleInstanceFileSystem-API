@@ -2,14 +2,14 @@
    Name(s):             Frinze Lapuz, Thye Shan Ng
    Student number(s):   22711649, 22727425
  */
-#include <stdio.h> //REVIEW  Remove
+#include <stdio.h> //REVIEW
 #include "sifs-internal.h"
+#include "helper.h"
 
 // make a new directory within an existing volume
 int SIFS_mkdir(const char *volumename, const char *pathname)
 {
     //CHECKS EXISTING DIRECTORY NAME
-
     // FIXME  For now assume pathname is single string
     SIFS_DIRBLOCK dir_block = {
         .name = "a", //FIXME
