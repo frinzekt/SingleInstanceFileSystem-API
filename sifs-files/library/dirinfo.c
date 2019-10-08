@@ -9,9 +9,6 @@
 #include "sifs-internal.h"
 #include "helper.h"
 
-char file_arr[24][32];              //file, or rather variable that stores directory path name
-char (*file_ptr)[32] = file_arr;    //pointer to file array
-
 // void info_print(void)
 // {
 //     //printf("contents of blockID = %i:\n\n", /*number*/);
@@ -28,21 +25,6 @@ char (*file_ptr)[32] = file_arr;    //pointer to file array
 //     printf("} SIFS_DIRBLOCK;\n");
 // }
 
-void blockID(char *path)
-{
-    //NOT SURE WHAT TO RENAME IT, BUT FOR NOW blockID, THIS FUNCTION SPLITS path name via '/' separately
-    char *token;
-
-    token = strtok(path, "/");
-
-    while (token != NULL)
-    {
-        strcpy(*file_ptr, token);
-        file_ptr++;
-        token = strtok(NULL, "/");
-    }
-
-}
 // get information about a requested directory
 int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
@@ -50,7 +32,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     //FIXME  FOR NOW ASSUME PATHNAME IS from root directory
     /*  SIFS_DIRBLOCK dir = {
         .name = }*/
-    blockID(pathname);
+    //blockID(pathname);
     SIFS_errno = SIFS_ENOTYET;
     return 1;
 }
