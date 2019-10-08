@@ -17,19 +17,27 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
         .nentries = 0,
     };
 
-    FILE *myvolume;
-    myvolume = fopen(volumename, "w+");
+    FILE *fp = fopen(volumename, "r");
 
-    SIFS_VOLUME_HEADER header;
-    fread(&header.blocksize, sizeof header.blocksize, 1, myvolume);
-    fread(&header.nblocks, sizeof header.nblocks, 1, myvolume);
+    if (fp != NULL)
+    {
+        //READ HEADER
+        SIFS_VOLUME_HEADER header;
+        fread(&header, sizeof header, 1, fp);
+        printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
+
+        //READ BITMAP
+        SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1);
+        fread(bitmap, 1, header.nblocks, fp);
+        printf("%s %d\n", bitmap, (int)(header.nblocks));
+    }
 
     //REVIEW Remove
+    printf("%s\n", volumename);
+    printf("%s\n", pathname);
     printf("%s\n", dir_block.name);
     printf("%ld\n", dir_block.modtime);
     printf("%d\n", dir_block.nentries);
-    printf("%ld\n", header.blocksize);
-    printf("%d\n", header.nblocks);
 
     SIFS_errno = SIFS_ENOTYET;
     return 1;
