@@ -123,9 +123,10 @@ SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
     //File Read
     fseek(fp, offset, SEEK_SET);
     fread(blockptr, header.blocksize, 1, fp);
-    printf("CHECK AF %d\n", blockptr->nfiles);
-    printf("CHECK blockname index0: %s", blockptr->filenames[0]); //FIXME  SEGFAULT RIGHT HERE
 
+    printf("CHECK AF %d\n", blockptr->nfiles);
+    printf("CHECK blockname index0: %s\n", blockptr->filenames[0]); //FIXME  SEGFAULT RIGHT HERE
+    printf("CHECK AF %d\n", blockptr->nfiles);
     resetFilePointerToStart(fp);
     return *blockptr;
 }
@@ -214,7 +215,7 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
 
     bool IsDir = (bitmap[currentBlockID] == SIFS_DIR);
     bool IsFile = (bitmap[currentBlockID] == SIFS_FILE);
-    printf("%s\n", bitmap);
+    // printf("%s\n", bitmap);
     printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
     if (IsDir)
     {

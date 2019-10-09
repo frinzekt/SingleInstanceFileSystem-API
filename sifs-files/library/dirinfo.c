@@ -63,13 +63,13 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     // * -> Strings
     //
     printf("CHECK");
-    char **found = malloc((block.nentries + 1) * sizeof(SIFS_MAX_NAME_LENGTH));
+    //char **found = malloc((block.nentries + 1) * sizeof(SIFS_MAX_NAME_LENGTH));
     printf("CHECK");
     for (int i = 0; i < block.nentries; i++)
     {
-
-        strcpy(found[i], getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex));
-        printf("entry no %i: %s", i, found[i]);
+        printf("COPY %s\n", getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex));
+        //strcpy(found[i], getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex));
+        //printf("entry no %i: %s", i, found[i]);
     }
     fclose(fp);
     return 0;
