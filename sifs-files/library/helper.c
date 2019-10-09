@@ -7,6 +7,7 @@
 #include "helper.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 FILE *getFileReaderPointer(const char *volumename)
 {
@@ -40,6 +41,7 @@ SIFS_VOLUME_HEADER getHeader(FILE *fp)
     SIFS_VOLUME_HEADER header;
 
     //FSEEK
+    resetFilePointerToStart(fp);
     fread(&header, sizeof header, 1, fp);
     //printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
 
@@ -112,8 +114,7 @@ SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
-    SIFS_FILEBLOCK *blockptr = malloc(header.blocksize + 1);
-
+    SIFS_FILEBLOCK *blockptr = malloc(header.blocksize);
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
     //roodir = sizes of previous block => (1+blockID-1)
     int offset = READ_OFFSET;
@@ -122,6 +123,8 @@ SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
     //File Read
     fseek(fp, offset, SEEK_SET);
     fread(blockptr, header.blocksize, 1, fp);
+    printf("CHECK AF %d\n", blockptr->nfiles);
+    printf("CHECK blockname index0: %s", blockptr->filenames[0]); //FIXME  SEGFAULT RIGHT HERE
 
     resetFilePointerToStart(fp);
     return *blockptr;
@@ -194,10 +197,38 @@ SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
     return currentBlockID;
 }
 
-//FIXME
 char *getPathTail(const char *pathname)
 {
     PATH path = getSplitPath(pathname);
     char *tailptr = path.subPathArray[path.numSubDir - 1];
     return tailptr;
+}
+
+char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    printf("CHECK\n");
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    printf("CHECK\n");
+    char *name = malloc(SIFS_MAX_NAME_LENGTH);
+
+    bool IsDir = (bitmap[currentBlockID] == SIFS_DIR);
+    bool IsFile = (bitmap[currentBlockID] == SIFS_FILE);
+    printf("%s\n", bitmap);
+    printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
+    if (IsDir)
+    {
+        name = getDirBlockById(fp, currentBlockID).name;
+    }
+    else if (IsFile)
+    {
+        name = getFileBlockById(fp, currentBlockID).filenames[fileindex];
+    }
+    else
+    {
+        printf("WARNING: DATA BLOCK OR UNUSED");
+        return NULL;
+    }
+    printf("RETURNED");
+    return name;
 }

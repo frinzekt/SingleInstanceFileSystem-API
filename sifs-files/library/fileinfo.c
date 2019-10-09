@@ -5,6 +5,7 @@
 
 #include "sifs-internal.h"
 #include "helper.h"
+#include <string.h>
 
 // get information about a requested file
 int SIFS_fileinfo(const char *volumename, const char *pathname,

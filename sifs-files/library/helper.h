@@ -32,7 +32,7 @@ extern SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, 
 //NO BITMAP CHECKING DONE HERE SO CHECK BITMAP BEFORE CALLING THIS FUNCTION
 extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
-
+extern char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex);
 // eg. a/b/c.h
 // a/b is the head
 // b is the last head
