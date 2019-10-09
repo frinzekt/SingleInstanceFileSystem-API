@@ -144,5 +144,28 @@ int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirna
         }
     }
     SIFS_errno = SIFS_ENOENT;
-    return -1; // NON-EXISTENT DIRECTORY
+    return -1; // NON-EXISTENT DIRECTORY AT DIRECTORY
+}
+
+int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    SIFS_DIRBLOCK currentBlock = getDirBlockById(fp, currentBlockID);
+
+    for (int i = 0; i < currentBlock.nentries; i++)
+    {
+        SIFS_BLOCKID entryblockID = currentBlock.entries[i].blockID;
+        if (bitmap[entryblockID] == SIFS_FILE) //ONLY CONSIDERS DIRECTORY BLOCK
+        {
+            SIFS_FILEBLOCK entryFile = getFileBlockById(fp, entryblockID);
+            uint32_t fileIndex = currentBlock.entries[i].fileindex;
+            if (strcmp(filename, entryFile.filenames[fileIndex]) == 0) //MATCHER FOR FILE BLOCK AND INDEX
+            {
+                return entryblockID;
+            }
+        }
+    }
+    SIFS_errno = SIFS_ENOENT;
+    return -1; // NON-EXISTENT FILE AT DIRECTORY
 }
