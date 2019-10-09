@@ -29,6 +29,7 @@ extern SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header);
 extern int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname);
 extern int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename);
 
+//NO BITMAP CHECKING DONE HERE SO CHECK BITMAP BEFORE CALLING THIS FUNCTION
 extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 
