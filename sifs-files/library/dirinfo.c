@@ -72,7 +72,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
         //printf("entry no %i: %s", i, found[i]);
     }
     fclose(fp);
-    return 0;
+    return 1;
 }
 /*
 make remake
