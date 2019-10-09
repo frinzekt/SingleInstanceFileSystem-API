@@ -188,3 +188,9 @@ int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
     }
     return currentBlockID;
 }
+
+char *getPathTail(const char *pathname)
+{
+    PATH path = getSplitPath(pathname);
+    return path.subPathArray[path.numSubDir - 1];
+}

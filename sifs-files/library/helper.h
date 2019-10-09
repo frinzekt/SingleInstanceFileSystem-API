@@ -33,3 +33,8 @@ extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 
 extern int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
+
+//Definitions from https://www.geeksforgeeks.org/python-os-path-split-method/
+//Tail is the name at the end of the path
+//Head is the pathname without the tail
+extern char *getPathTail(const char *pathname);
