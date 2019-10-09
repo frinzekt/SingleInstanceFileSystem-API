@@ -39,7 +39,7 @@ SIFS_VOLUME_HEADER getHeader(FILE *fp)
     //READ HEADER
     SIFS_VOLUME_HEADER header;
     fread(&header, sizeof header, 1, fp);
-    printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
+    //printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
 
     resetFilePointerToStart(fp);
     return header;
@@ -53,14 +53,11 @@ SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header)
     //fpread(fp, sizeof(header), SEEK_SET, bitmap, header.nblocks, header.nblocks);
     fseek(fp, sizeof(header), SEEK_SET);
     fread(bitmap, 1, header.nblocks, fp);
-    printf("%s %d\n", bitmap, (int)(header.nblocks));
+    //printf("%s %d\n", bitmap, (int)(header.nblocks));
 
     resetFilePointerToStart(fp);
     return bitmap;
 }
-
-char file_arr[24][32];           //file, or rather variable that stores directory path name
-char (*file_ptr)[32] = file_arr; //pointer to file array
 
 PATH getSplitPath(const char *pathname)
 {
@@ -88,36 +85,64 @@ PATH getSplitPath(const char *pathname)
     printf("\n");
     return path;
 }
+
+#define READ_OFFSET sizeof(header) + header.nblocks + (currentBlockID) * (header.blocksize)
+
 SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , bitmap never used
+    //SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS DIRBLOCK
     SIFS_DIRBLOCK *blockptr = malloc(header.blocksize + 1);
 
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
     //roodir = sizes of previous block => (1+blockID-1)
-    int offset = sizeof(header) + header.nblocks + (currentBlockID) * (header.blocksize);
-    printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
+    int offset = READ_OFFSET;
+    //printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
 
-    //fpread(fp, offset, SEEK_SET, &block, sizeof(block), 1);
+    //File Read
     fseek(fp, offset, SEEK_SET);
     fread(blockptr, header.blocksize, 1, fp);
-
-    printf("name: %s,modtime:%ld, nentries:%d, size of data: %ld  \n\n", blockptr->name, blockptr->modtime, blockptr->nentries, sizeof(SIFS_DIRBLOCK));
 
     resetFilePointerToStart(fp);
     return *blockptr;
 }
-int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname)
+SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 {
-    // REVIEW
-    printf("CBID: %d, Dirname: %s\n", currentBlockID, dirname);
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS DIRBLOCK
+    SIFS_FILEBLOCK *blockptr = malloc(header.blocksize + 1);
+
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
     //roodir = sizes of previous block => (1+blockID-1)
-    int offset = sizeof(header) + header.nblocks + (currentBlockID) * (header.blocksize);
-    printf("OFFSET: %i bitmap:%c\n", offset, bitmap[1]);
+    int offset = READ_OFFSET;
+    printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
 
-    return 0;
+    //File Read
+    fseek(fp, offset, SEEK_SET);
+    fread(blockptr, header.blocksize, 1, fp);
+
+    resetFilePointerToStart(fp);
+    return *blockptr;
+}
+
+int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    SIFS_DIRBLOCK currentBlock = getDirBlockById(fp, currentBlockID);
+
+    for (int i = 0; i < currentBlock.nentries; i++)
+    {
+        SIFS_BLOCKID entryblockID = currentBlock.entries[i].blockID;
+        if (bitmap[entryblockID] == SIFS_DIR) //ONLY CONSIDERS DIRECTORY BLOCK
+        {
+            SIFS_DIRBLOCK entryDir = getDirBlockById(fp, entryblockID);
+            if (strcmp(dirname, entryDir.name) == 0) //MATCHER
+            {
+                return entryblockID;
+            }
+        }
+    }
+    SIFS_errno = SIFS_ENOENT;
+    return -1; // NON-EXISTENT DIRECTORY
 }
