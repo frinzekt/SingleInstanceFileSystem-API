@@ -31,3 +31,5 @@ extern int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const cha
 
 extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
+
+extern int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);

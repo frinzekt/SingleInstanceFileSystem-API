@@ -109,7 +109,7 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS DIRBLOCK
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
     SIFS_FILEBLOCK *blockptr = malloc(header.blocksize + 1);
 
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
@@ -168,4 +168,23 @@ int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *file
     }
     SIFS_errno = SIFS_ENOENT;
     return -1; // NON-EXISTENT FILE AT DIRECTORY
+}
+
+int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
+{ //REVIEW  NEEDS FURTHER TESTING FOR NESTED DIRECTORY
+    PATH path = getSplitPath(pathname);
+
+    //ROOT DIRECTORY
+    SIFS_BLOCKID currentBlockID = 0;
+
+    for (int i = 0; i < path.numSubDir - 1; i++)
+    {
+        //ASSIGNS THE CURRENT AS THE NEXT BLOCKID IN THE SUBDIR LINE
+        currentBlockID = getDirBlockIdByName(fp, currentBlockID, path.subPathArray[i]);
+        if (currentBlockID < 0) //NON EXISTENT OR NONVALID DIRECTORY - occurs for bitmap f as subdir
+        {
+            return -1;
+        }
+    }
+    return currentBlockID;
 }
