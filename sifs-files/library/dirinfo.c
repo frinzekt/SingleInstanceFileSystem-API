@@ -29,10 +29,45 @@
 int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
 {
-    //FIXME  FOR NOW ASSUME PATHNAME IS from root directory
-    /*  SIFS_DIRBLOCK dir = {
-        .name = }*/
-    //blockID(pathname);
-    SIFS_errno = SIFS_ENOTYET;
-    return 1;
+    FILE *fp = getFileReaderPointer(volumename);
+    //NULL CHECKER ... return 1 - failure
+
+    SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
+    char *tailname = getPathTail(pathname);
+    const char *newtail = tailname;
+    printf("head: %i, tail:%s \n", lastPathHeadDirId, tailname);
+    printf("head: %i, tail:%s \n", lastPathHeadDirId, newtail);
+    SIFS_BLOCKID tailId = getDirBlockIdByName(fp, lastPathHeadDirId, pathname); //FIXME
+    printf("head: %i, tail: %i-%s \n", lastPathHeadDirId, tailId, tailname);
+    printf("SIFS ERROR: %i \n", SIFS_errno);
+
+    if ((tailId == -1) || (lastPathHeadDirId == -1))
+    {
+        return 1;
+    }
+
+    SIFS_DIRBLOCK block = getDirBlockById(fp, tailId);
+    *nentries = block.nentries;
+    *modtime = block.modtime; //FIXME
+
+    printf("SUCCESS DIRINFO\n");
+    printf("blockname: %s \n", block.name);
+    printf("nentries: %d = %d\n", *nentries, block.nentries);
+    printf("modtime : %ld = %ld\n", *modtime, block.modtime);
+    printf("LIBRARY OUTPUT ENDS HERE -------");
+
+    //TRIPLE POINTER
+    //EntryIDs -> BlockID -> fileindex -> storing value
+    // * -> Strings
+    //
+    fclose(fp);
+    return 0;
 }
+/*
+make remake
+
+running exe
+./sifs_mkvolume [volume name] [block size] [block no]
+./sifs_mkvolume  2000 10
+./sifs_dirinfo sample/volD subdir1
+*/

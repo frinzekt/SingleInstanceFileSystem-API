@@ -19,7 +19,7 @@ FILE *getFileReaderPointer(const char *volumename)
     }
     return fp;
 }
-void resetFilePointerToStart(FILE *fp)
+void resetFilePointerToStart(FILE *fp) //REVIEW
 {
     fseek(fp, 0, SEEK_SET);
 }
@@ -38,6 +38,8 @@ SIFS_VOLUME_HEADER getHeader(FILE *fp)
 {
     //READ HEADER
     SIFS_VOLUME_HEADER header;
+
+    //FSEEK
     fread(&header, sizeof header, 1, fp);
     //printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
 
@@ -47,7 +49,7 @@ SIFS_VOLUME_HEADER getHeader(FILE *fp)
 
 SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header)
 {
-    SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1);
+    SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1); //REVIEW sizeof(int)
 
     //SKIP TO SPECIFIC BYTE COUNT THEN READ
     //fpread(fp, sizeof(header), SEEK_SET, bitmap, header.nblocks, header.nblocks);
@@ -82,7 +84,7 @@ PATH getSplitPath(const char *pathname)
     {
         printf("%s\n", path.subPathArray[i]);
     }
-    printf("\n");
+    printf("}\n");
     return path;
 }
 
@@ -125,18 +127,21 @@ SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
     return *blockptr;
 }
 
-int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname)
+SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname)
 {
+    printf("COMPARING: %s ----\n", dirname); //FIXME
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_DIRBLOCK currentBlock = getDirBlockById(fp, currentBlockID);
 
     for (int i = 0; i < currentBlock.nentries; i++)
     {
+
         SIFS_BLOCKID entryblockID = currentBlock.entries[i].blockID;
         if (bitmap[entryblockID] == SIFS_DIR) //ONLY CONSIDERS DIRECTORY BLOCK
         {
             SIFS_DIRBLOCK entryDir = getDirBlockById(fp, entryblockID);
+            printf("COMPARING: %s and %s\n", dirname, entryDir.name);
             if (strcmp(dirname, entryDir.name) == 0) //MATCHER
             {
                 return entryblockID;
@@ -147,8 +152,8 @@ int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirna
     return -1; // NON-EXISTENT DIRECTORY AT DIRECTORY
 }
 
-int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename)
-{
+SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename)
+{ //REVIEW  NEEDS TESTING
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_DIRBLOCK currentBlock = getDirBlockById(fp, currentBlockID);
@@ -170,7 +175,7 @@ int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *file
     return -1; // NON-EXISTENT FILE AT DIRECTORY
 }
 
-int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
+SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
 { //REVIEW  NEEDS FURTHER TESTING FOR NESTED DIRECTORY
     PATH path = getSplitPath(pathname);
 
@@ -189,8 +194,10 @@ int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
     return currentBlockID;
 }
 
+//FIXME
 char *getPathTail(const char *pathname)
 {
     PATH path = getSplitPath(pathname);
-    return path.subPathArray[path.numSubDir - 1];
+    char *tailptr = path.subPathArray[path.numSubDir - 1];
+    return tailptr;
 }

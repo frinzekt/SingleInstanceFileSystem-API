@@ -26,14 +26,17 @@ extern SIFS_VOLUME_HEADER getHeader(FILE *fp);
 extern SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header);
 
 //Returns -1 for NON-EXISTENT DIRECTORY, otherwise returns BlockID
-extern int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname);
-extern int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename);
+extern SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname);
+extern SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename);
 
 //NO BITMAP CHECKING DONE HERE SO CHECK BITMAP BEFORE CALLING THIS FUNCTION
 extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 
-extern int getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
+// eg. a/b/c.h
+// a/b is the head
+// b is the last head
+extern SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
 
 //Definitions from https://www.geeksforgeeks.org/python-os-path-split-method/
 //Tail is the name at the end of the path
