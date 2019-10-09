@@ -5,25 +5,26 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "sifs-internal.h"
 #include "helper.h"
 
-// void info_print(void)
-// {
-//     //printf("contents of blockID = %i:\n\n", /*number*/);
-//     printf("struct {\n");
-//     //printf("\t\tname = \"%c\"\n", /*dirname*/);
-//     //printf("modified = %i (%c)\n", /*unix*/ /*actual date n time*/);
-//     // printf("nentries = %i\n\n", /*entry no*/);
+void info_print(void)
+{
+    printf("contents of blockID = %i:\n\n", /*number*/);
+    printf("struct {\n");
+    printf("\t\tname = \"%c\"\n", /*dirname*/);
+    printf("modified = %i (%c)\n", /*unix*/ /*actual date n time*/);
+    // printf("nentries = %i\n\n", /*entry no*/);
 
-//     for (int i = 0; i < SIFS_MAX_ENTRIES; i++)
-//     {
-//         //printf("\tentries[%2i] = %c\n", /*block file index*/)
-//     }
+    for (int i = 0; i < SIFS_MAX_ENTRIES; i++)
+    {
+        //printf("\tentries[%2i] = %c\n", /*block file index*/)
+    }
 
-//     printf("} SIFS_DIRBLOCK;\n");
-// }
+    printf("} SIFS_DIRBLOCK;\n");
+}
 
 // get information about a requested directory
 int SIFS_dirinfo(const char *volumename, const char *pathname,
@@ -33,11 +34,10 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     //NULL CHECKER ... return 1 - failure
 
     SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
-    char *tailname = getPathTail(pathname);
-    const char *newtail = tailname;
+    char tailname[SIFS_MAX_NAME_LENGTH];
+    strcpy(tailname, getPathTail(pathname));
     printf("head: %i, tail:%s \n", lastPathHeadDirId, tailname);
-    printf("head: %i, tail:%s \n", lastPathHeadDirId, newtail);
-    SIFS_BLOCKID tailId = getDirBlockIdByName(fp, lastPathHeadDirId, pathname); //FIXME
+    SIFS_BLOCKID tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
     printf("head: %i, tail: %i-%s \n", lastPathHeadDirId, tailId, tailname);
     printf("SIFS ERROR: %i \n", SIFS_errno);
 
