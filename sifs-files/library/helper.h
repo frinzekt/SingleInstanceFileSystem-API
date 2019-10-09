@@ -16,15 +16,16 @@ typedef struct
     char subPathArray[MAX_NUM_SUBDIRECTORIES][SIFS_MAX_NAME_LENGTH];
 } PATH;
 
+//Returns a path structure containing subpath in Array the length of the array
+extern PATH getSplitPath(const char *pathname);
+//GETS FILE READER POINTER, you still need to close the filepointer after use
 extern FILE *getFileReaderPointer(const char *volumename);
-extern size_t fpread(FILE *fp, size_t offset, size_t start, void *buffer, size_t size, size_t nitems);
 
+// NOTE  ALL THE FUNCTION REQUIRING FILE *fp will require that fp is not NULL and is open
 extern SIFS_VOLUME_HEADER getHeader(FILE *fp);
 extern SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header);
 
-//Returns pointer that points to array of pointer pointing to strings
-//Can be done with char *words[number of words]
-extern PATH getSplitPath(const char *pathname);
+//Returns -1 for NON-EXISTENT DIRECTORY, otherwise returns BlockID
 extern int getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname);
 extern int getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename);
 
