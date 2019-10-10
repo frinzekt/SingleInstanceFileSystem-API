@@ -34,7 +34,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
 {
     FILE *fp = getFileReaderPointer(volumename);
     //NULL CHECKER ... return 1 - failure
-    /*
+
     SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
     char tailname[SIFS_MAX_NAME_LENGTH];
     strcpy(tailname, getPathTail(pathname));
@@ -46,11 +46,11 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
         return 1;
-    }*/
+    }
 
-    SIFS_DIRBLOCK block = getDirBlockById(fp, 0); //FIXME SHOULD BE tailId
+    SIFS_DIRBLOCK block = getDirBlockById(fp, tailname);
     *nentries = block.nentries;
-    *modtime = block.modtime; //FIXME
+    *modtime = block.modtime;
 
     printf("SUCCESS DIRINFO\n");
     info_print(&block);
