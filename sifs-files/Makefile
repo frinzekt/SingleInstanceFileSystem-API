@@ -3,7 +3,7 @@ PROJECT		= sifs
 HEADER		= $(PROJECT).h
 LIBRARY		= lib$(PROJECT).a
 
-APPLICATIONS	= sifs_mkvolume sifs_dirinfo
+APPLICATIONS	= sifs_mkvolume sifs_dirinfo playground
 
 # ----------------------------------------------------------------
 
@@ -24,4 +24,9 @@ $(LIBRARY):
 clean:
 	rm -f $(LIBRARY) $(APPLICATIONS)
 	make -C library clean
+
+remake:
+	rm -f $(LIBRARY) $(APPLICATIONS)
+	make -C library clean
+	make
 

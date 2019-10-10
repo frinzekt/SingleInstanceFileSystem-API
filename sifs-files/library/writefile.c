@@ -4,6 +4,7 @@
  */
 
 #include "sifs-internal.h"
+#include "helper.h"
 
 // add a copy of a new file to an existing volume
 int SIFS_writefile(const char *volumename, const char *pathname,
