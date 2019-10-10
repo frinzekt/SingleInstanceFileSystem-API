@@ -35,13 +35,21 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     FILE *fp = getFileReaderPointer(volumename);
     //NULL CHECKER ... return 1 - failure
 
-    SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
+    SIFS_BLOCKID tailId;
+    SIFS_BLOCKID lastPathHeadDirId = 0;
+    //if (strcmp(pathname, "0") != 0){  DOES EXECUTES IN HERE, BUT PRODUCES ERROR WHEN PASSING TO SIFS_DIRINFO
+    lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
     char tailname[SIFS_MAX_NAME_LENGTH];
     strcpy(tailname, getPathTail(pathname));
     printf("head: %i, tail:%s \n", lastPathHeadDirId, tailname);
-    SIFS_BLOCKID tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
+    tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
     printf("head: %i, tail: %i-%s \n", lastPathHeadDirId, tailId, tailname);
     printf("SIFS ERROR: %i \n", SIFS_errno);
+    /*}
+    else
+    {
+        tailId = 0;
+    }*/
 
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
@@ -54,9 +62,6 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
 
     printf("SUCCESS DIRINFO\n");
     info_print(&block);
-    //     printf("blockname: %s \n", block.name);
-    // printf("nentries: %d = %d\n", *nentries, block.nentries);
-    //printf("modtime : %ld = %ld\n", *modtime, block.modtime);
 
     //TRIPLE POINTER
     //EntryIDs -> BlockID -> fileindex -> storing value
@@ -78,7 +83,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     *entrynames = found;
     printf("LIBRARY OUTPUT ENDS HERE -------\n");
     fclose(fp);
-    return 0;
+    return 1;
 }
 /*
 make remake
