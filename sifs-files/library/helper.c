@@ -113,20 +113,17 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
+    // SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
     SIFS_FILEBLOCK *blockptr = malloc(header.blocksize);
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
     //roodir = sizes of previous block => (1+blockID-1)
     int offset = READ_OFFSET;
-    printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
+    //printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
 
     //File Read
     fseek(fp, offset, SEEK_SET);
     fread(blockptr, header.blocksize, 1, fp);
 
-    printf("CHECK AF %d\n", blockptr->nfiles);
-    printf("CHECK blockname index0: %s\n", blockptr->filenames[0]); //FIXME  SEGFAULT RIGHT HERE
-    printf("CHECK AF %d\n", blockptr->nfiles);
     resetFilePointerToStart(fp);
     return *blockptr;
 }
@@ -208,15 +205,14 @@ char *getPathTail(const char *pathname)
 char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    printf("CHECK\n");
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    printf("CHECK\n");
+
     char *name = malloc(SIFS_MAX_NAME_LENGTH);
 
     bool IsDir = (bitmap[currentBlockID] == SIFS_DIR);
     bool IsFile = (bitmap[currentBlockID] == SIFS_FILE);
     // printf("%s\n", bitmap);
-    printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
+    //printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
     if (IsDir)
     {
         name = getDirBlockById(fp, currentBlockID).name;
@@ -230,6 +226,5 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
         printf("WARNING: DATA BLOCK OR UNUSED");
         return NULL;
     }
-    printf("RETURNED");
     return name;
 }

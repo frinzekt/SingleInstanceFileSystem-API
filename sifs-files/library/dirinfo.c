@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <assert.h>
+#include <stdlib.h>
 
 #include "sifs-internal.h"
 #include "helper.h"
@@ -55,22 +57,26 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     //     printf("blockname: %s \n", block.name);
     // printf("nentries: %d = %d\n", *nentries, block.nentries);
     //printf("modtime : %ld = %ld\n", *modtime, block.modtime);
-    printf("LIBRARY OUTPUT ENDS HERE -------");
 
     //TRIPLE POINTER
     //EntryIDs -> BlockID -> fileindex -> storing value
     //??->StringArray->String
     // * -> Strings
     //
-    printf("CHECK");
-    //char **found = malloc((block.nentries + 1) * sizeof(SIFS_MAX_NAME_LENGTH));
-    printf("CHECK");
+    char **found = malloc((block.nentries + 1) * sizeof(SIFS_MAX_NAME_LENGTH));
     for (int i = 0; i < block.nentries; i++)
     {
-        printf("COPY %s\n", getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex));
-        //strcpy(found[i], getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex));
-        //printf("entry no %i: %s", i, found[i]);
+        //NOTE Strdup is not in ISO C standard (its a POSIX thing)
+        char *name = getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex);
+        found[i] = malloc(strlen(name) + 1);
+        if (found[i] == NULL)
+            return -1; // No memory
+
+        strcpy(found[i], name);
+        printf("entry no %i: %s\n", i, found[i]);
     }
+    *entrynames = found;
+    printf("LIBRARY OUTPUT ENDS HERE -------");
     fclose(fp);
     return 1;
 }
