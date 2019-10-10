@@ -76,9 +76,9 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
         printf("entry no %i: %s\n", i, found[i]);
     }
     *entrynames = found;
-    printf("LIBRARY OUTPUT ENDS HERE -------");
+    printf("LIBRARY OUTPUT ENDS HERE -------\n");
     fclose(fp);
-    return 1;
+    return 0;
 }
 /*
 make remake
