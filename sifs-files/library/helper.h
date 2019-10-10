@@ -7,6 +7,7 @@
 
 */
 #include <stdio.h>
+#include <stdbool.h>
 
 #define MAX_NUM_SUBDIRECTORIES 24 //REVIEW  CHANGE THIS
 
@@ -20,6 +21,7 @@ typedef struct
 extern PATH getSplitPath(const char *pathname);
 //GETS FILE READER POINTER, you still need to close the filepointer after use
 extern FILE *getFileReaderPointer(const char *volumename);
+extern FILE *getFileWriterPointer(const char *volumename); //FIXME
 
 // NOTE  ALL THE FUNCTION REQUIRING FILE *fp will require that fp is not NULL and is open
 extern SIFS_VOLUME_HEADER getHeader(FILE *fp);
@@ -42,3 +44,16 @@ extern SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
 //Tail is the name at the end of the path
 //Head is the pathname without the tail
 extern char *getPathTail(const char *pathname);
+
+//Unused Blocks
+//FIXME
+extern int getNoBlockRequirement(size_t length, uint32_t nblocks_header);                                  // Converts length to number of blocks
+extern SIFS_BLOCKID getNextUnusedBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start);                            //RETURNS -1 on failure
+extern SIFS_BLOCKID getNextUnusedBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req); //Calls Unused BlockID and returns -1 on failure
+
+// RETURNS TRUE/FALSE ON SUCCESS/FAIL
+// CAN FAIL IF THERE IS NOT ENOUGH LENGTH
+//FIXME
+extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId);
+//extern bool writeDataBlock(FILE *fp, );
+extern bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId);
