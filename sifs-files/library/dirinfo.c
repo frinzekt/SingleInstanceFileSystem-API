@@ -48,7 +48,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
         return 1;
     }
 
-    SIFS_DIRBLOCK block = getDirBlockById(fp, tailname);
+    SIFS_DIRBLOCK block = getDirBlockById(fp, tailId);
     *nentries = block.nentries;
     *modtime = block.modtime;
 
