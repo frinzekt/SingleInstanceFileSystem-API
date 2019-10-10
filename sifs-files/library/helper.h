@@ -47,13 +47,24 @@ extern char *getPathTail(const char *pathname);
 
 //Unused Blocks
 //FIXME
-extern int getNoBlockRequirement(size_t length, uint32_t nblocks_header);                                  // Converts length to number of blocks
-extern SIFS_BLOCKID getNextUnusedBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start);                            //RETURNS -1 on failure
-extern SIFS_BLOCKID getNextUnusedBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req); //Calls Unused BlockID and returns -1 on failure
+extern int getNoBlockRequirement(size_t length, uint32_t nblocks_header);                             // Converts length to number of blocks
+extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start);                            //RETURNS -1 on failure (if no unused)
+extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req); //Calls Unused BlockID and returns -1 on failure
 
 // RETURNS TRUE/FALSE ON SUCCESS/FAIL
 // CAN FAIL IF THERE IS NOT ENOUGH LENGTH
 //FIXME
-extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId);
+//NOTE  dirContainerId is the blockID of where the entry(file or directory) belongs to
+extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId); // FIXME  needs more parameters
 //extern bool writeDataBlock(FILE *fp, );
-extern bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId);
+extern bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName);
+
+//BLOCK REWRITER, takes ID and the new block(WITH THE NEW DETAILS) then rewrites that
+extern bool modifyDirBlock(FILE *fp, SIFS_BLOCKID dirBlockId, SIFS_DIRBLOCK newDirBlock);     //HAPPENS WHEN UPDATING ENTRY AND TIME + REMOVING
+extern bool modifyFileBlock(FILE *fp, SIFS_BLOCKID fileBlockId, SIFS_FILEBLOCK newFileBlock); //HAPPENS WHEN THERE'S A FILE DUPLICATE WHICH UPDATES FILENAMES and nfiles, MODIFICATION NAME??
+
+//FIXME
+extern bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId);                                                          //REMOVES BLOCK IN FILE, NOTHING ELSE
+extern bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex); //REMOVES FILEBLOCK  IF remaining nfiles=0 ELSE removes filename
+//extern bool removeDataBlock();
+extern bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
