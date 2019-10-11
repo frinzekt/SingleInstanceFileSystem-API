@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <limits.h>
 
 FILE *getFileReaderPointer(const char *volumename)
 {
@@ -229,6 +230,19 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     return name;
 }
 
+char *getVolPath(const char*volumename)  //eg. FOR sample/Vold you get sample/ , needed for 
+{
+    char *current_path = malloc(sizeof(char) * PATH_MAX);
+    PATH vol_path = getSplitPath(volumename);
+    for (int i = 0; i < (vol_path.numSubDir - 1); i++)
+    {
+        strcat(current_path, vol_path.subPathArray[i]);
+        strcat(current_path, "/");
+    }
+    //printf("%s\n", current_path);
+    return current_path;
+}
+
 bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)
 {
     return false;
@@ -240,32 +254,13 @@ bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
 }
 
 
-bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId)
+bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char *volumename)
 {
-    SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    //SIFS_VOLUME_HEADER header = getHeader(fp);
+    //SIFS_BIT *bitmap = getBitmapPtr(fp, header);
 
-    if(blockId > strlen(bitmap))
-    {
-        printf("blockId does not exist\n");
-        return false;
-    }
-    else if (bitmap[blockId] == SIFS_UNUSED)
-    {
-        printf("Nothing to delete\n");
-        return false;
-    }
+    getVolPath(volumename);
 
-    if(bitmap[blockId] == SIFS_DIR)
-    {
-        //removeDirBlock();
-        return true;
-    }
-    else if(bitmap[blockId == SIFS_FILE])
-    {
-        //removeFileBlockById();
-        return true;
-    }
 
     return false;
 }
