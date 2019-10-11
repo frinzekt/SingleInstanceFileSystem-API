@@ -211,7 +211,7 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
 
     bool IsDir = (bitmap[currentBlockID] == SIFS_DIR);
     bool IsFile = (bitmap[currentBlockID] == SIFS_FILE);
-    // printf("%s\n", bitmap);
+    //printf("%s\n", bitmap);
     //printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
     if (IsDir)
     {
@@ -227,4 +227,45 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
         return NULL;
     }
     return name;
+}
+
+bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)
+{
+    return false;
+}
+
+bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
+{
+    return false;
+}
+
+
+bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+
+    if(blockId > strlen(bitmap))
+    {
+        printf("blockId does not exist\n");
+        return false;
+    }
+    else if (bitmap[blockId] == SIFS_UNUSED)
+    {
+        printf("Nothing to delete\n");
+        return false;
+    }
+
+    if(bitmap[blockId] == SIFS_DIR)
+    {
+        //removeDirBlock();
+        return true;
+    }
+    else if(bitmap[blockId == SIFS_FILE])
+    {
+        //removeFileBlockById();
+        return true;
+    }
+
+    return false;
 }
