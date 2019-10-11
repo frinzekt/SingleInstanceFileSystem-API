@@ -17,7 +17,7 @@ void info_print(SIFS_DIRBLOCK *block)
     //printf("contents of blockID = %i:\n\n", /*number*/);
     printf("struct {\n");
     printf("\t    name = \"%s\"\n", block->name);
-    printf("\tmodified = %ld (%s)\n", block->modtime, ctime(&(block->modtime)));
+    printf("\tmodified = %ld - %s", block->modtime, ctime(&(block->modtime)));
     printf("\tnentries = %i\n\n", block->nentries);
 
     // for (int i = 0; i < SIFS_MAX_ENTRIES; i++)
@@ -37,7 +37,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
 
     SIFS_BLOCKID tailId;
     SIFS_BLOCKID lastPathHeadDirId = 0;
-    //if (strcmp(pathname, "0") != 0){  DOES EXECUTES IN HERE, BUT PRODUCES ERROR WHEN PASSING TO SIFS_DIRINFO
+    //if (strcmp(pathname, "0") != 0){  //DOES EXECUTES IN HERE, BUT PRODUCES ERROR WHEN PASSING TO SIFS_DIRINFO
     lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
     char tailname[SIFS_MAX_NAME_LENGTH];
     strcpy(tailname, getPathTail(pathname));
@@ -78,7 +78,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
             return -1; // No memory
 
         strcpy(found[i], name);
-        printf("entry no %i: %s\n", i, found[i]);
+        printf("entry no %i: %20s\tblockID = %i\n", i, found[i],block.entries[i].blockID);
     }
     *entrynames = found;
     printf("LIBRARY OUTPUT ENDS HERE -------\n");
