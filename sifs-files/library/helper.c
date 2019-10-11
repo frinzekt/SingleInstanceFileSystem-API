@@ -230,7 +230,7 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     return name;
 }
 
-char *getVolPath(const char*volumename)  //eg. FOR sample/Vold you get sample/ , needed for 
+char *getVolPath(const char*volumename)  //eg. for sample/Vold you get sample/
 {
     char *current_path = malloc(sizeof(char) * PATH_MAX);
     PATH vol_path = getSplitPath(volumename);
@@ -256,11 +256,33 @@ bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
 
 bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char *volumename)
 {
-    //SIFS_VOLUME_HEADER header = getHeader(fp);
-    //SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
 
-    getVolPath(volumename);
+    if (bitmap[blockId] == SIFS_UNUSED)
+    {
+        printf("...Nothing to remove...\n");
+        return false;
+    }
+    
+    char *volpath = getVolPath(volumename);
 
+    char cpypath[PATH_MAX];
+    strcpy(cpypath, volpath);
+    strcat(cpypath, "block_cpy.txt");
+    printf("______%s\n",cpypath);
 
+    //FILE *cpy = fopen(cpypath, "w");
+
+    /*
+
+        code for replacing block with 0's in cpyfile
+
+    */
+
+    //remove(volumename);
+    //rename(cpypath,volumename);
+    //free(volpath);
+    //fclose(volumename);
     return false;
 }
