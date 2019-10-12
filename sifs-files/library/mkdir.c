@@ -13,7 +13,12 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
     SIFS_BLOCKID container = getDirBlockIdBeforePathEnds(fp, pathname);
     char *tail = getPathTail(pathname);
     printf("TAIL HERE %s\n", tail);
-    writeDirBlock(fp, container, tail);
+
+    if (!writeDirBlock(fp, container, tail))
+    { //ERROR CHECKS
+        return EXIT_FAILURE;
+    }
+
     fclose(fp);
-    return 1;
+    return EXIT_SUCCESS; //SUCCESS
 }
