@@ -324,6 +324,20 @@ bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBl
     return true;
 }
 
+bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
+{ //TODO
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    //ERROR CHECKING
+    SIFS_DIRBLOCK block = {
+        .name = dirName,
+        .modtime = time(NULL),
+        .nentries = 0,
+    };
+    fseek(fp, 0, SEEK_END);
+    fwrite(&block, header.blocksize, 1, fp);
+    return true;
+}
+
 bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)
 {
     return false;
