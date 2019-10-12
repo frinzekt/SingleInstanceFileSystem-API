@@ -24,7 +24,13 @@ int main(int argcount, char *argvalue[])
     else
     {
         //CHANGE WHATEVER IS IN HERE
-        SIFS_mkdir(argvalue[1], argvalue[2]);
+        size_t *length = malloc(10000);
+        time_t *modtime = malloc(10000);
+        //CHANGE WHATEVER IS IN HERE
+        SIFS_fileinfo(argvalue[1], argvalue[2],
+                      length, modtime);
+
+        printf("IN SIFS_WRITEFILE %ld, %ld", *length, *modtime);
     }
     return 0;
 }
