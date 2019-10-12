@@ -21,6 +21,17 @@ FILE *getFileReaderPointer(const char *volumename)
     }
     return fp;
 }
+FILE *getFileWriterPointer(const char *volumename)
+{
+    FILE *fp = fopen(volumename, "r+");
+    if (fp == NULL)
+    {
+        //READING ERROR
+        SIFS_errno = SIFS_ENOVOL;
+        return NULL;
+    }
+    return fp;
+}
 void resetFilePointerToStart(FILE *fp) //REVIEW
 {
     fseek(fp, 0, SEEK_SET);
@@ -91,9 +102,9 @@ PATH getSplitPath(const char *pathname)
     return path;
 }
 
-#define READ_OFFSET sizeof(header) + header.nblocks + (currentBlockID) * (header.blocksize)
+#define READ_OFFSET sizeof(header) + header.nblocks + (currentBlockId) * (header.blocksize)
 
-SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
+SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     //SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS DIRBLOCK
@@ -111,7 +122,7 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
     resetFilePointerToStart(fp);
     return *blockptr;
 }
-SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
+SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     // SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
@@ -291,6 +302,40 @@ char *getVolPath(const char*volumename)  //eg. for sample/Vold you get sample/
     }
     //printf("%s\n", current_path);
     return current_path;
+}
+bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBlock)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+
+    int offset = READ_OFFSET;
+    fseek(fp, offset, SEEK_SET);
+    fwrite(&newBlock, header.blocksize, 1, fp);
+
+    return true;
+}
+bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBlock)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+
+    int offset = READ_OFFSET;
+    fseek(fp, offset, SEEK_SET);
+    fwrite(&newBlock, header.blocksize, 1, fp);
+
+    return true;
+}
+
+bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
+{ //TODO
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    //ERROR CHECKING
+    SIFS_DIRBLOCK block = {
+        .name = dirName,
+        .modtime = time(NULL),
+        .nentries = 0,
+    };
+    fseek(fp, 0, SEEK_END);
+    fwrite(&block, header.blocksize, 1, fp);
+    return true;
 }
 
 bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)

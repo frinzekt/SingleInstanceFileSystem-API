@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 #define MAX_NUM_SUBDIRECTORIES 24 //REVIEW  CHANGE THIS
+#define MAX_PATH_NAME MAX_NUM_SUBDIRECTORIES *SIFS_MAX_NAME_LENGTH
 
 typedef struct
 {
