@@ -102,9 +102,9 @@ PATH getSplitPath(const char *pathname)
     return path;
 }
 
-#define READ_OFFSET sizeof(header) + header.nblocks + (currentBlockID) * (header.blocksize)
+#define READ_OFFSET sizeof(header) + header.nblocks + (currentBlockId) * (header.blocksize)
 
-SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
+SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     //SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS DIRBLOCK
@@ -122,7 +122,7 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
     resetFilePointerToStart(fp);
     return *blockptr;
 }
-SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID)
+SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     // SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
@@ -253,11 +253,27 @@ char *getVolPath(const char *volumename) //eg. for sample/Vold you get sample/
     //printf("%s\n", current_path);
     return current_path;
 }
-bool modifyDirBlock(FILE *fp, SIFS_BLOCKID dirBlockId, SIFS_DIRBLOCK newDirBlock)
+bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBlock)
 {
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+
+    int offset = READ_OFFSET;
+    fseek(fp, offset, SEEK_SET);
+    fwrite(&newBlock, header.blocksize, 1, fp);
+
+    return true;
 }
-bool modifyFileBlock(FILE *fp, SIFS_BLOCKID fileBlockId, SIFS_FILEBLOCK newFileBlock)
+bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBlock)
 {
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+
+    int offset = READ_OFFSET;
+    fseek(fp, offset, SEEK_SET);
+    fwrite(&newBlock, header.blocksize, 1, fp);
+
+    return true;
 }
 
 bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)
