@@ -5,3 +5,9 @@ sifs-files/sifs_dirinfo
 sifs-files/libsifs.a
 sifs-files/library/libsifs.a
 sifs-files/playground
+sifs-files/sifs_writefile
+sifs-files/sifs_rmfile
+sifs-files/sifs_rmdir
+sifs-files/sifs_readfile
+sifs-files/sifs_mkdir
+sifs-files/sifs_fileinfo
