@@ -39,8 +39,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     SIFS_BLOCKID lastPathHeadDirId = 0;
     //if (strcmp(pathname, "0") != 0){  //DOES EXECUTES IN HERE, BUT PRODUCES ERROR WHEN PASSING TO SIFS_DIRINFO
     lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
-    char tailname[SIFS_MAX_NAME_LENGTH];
-    strcpy(tailname, getPathTail(pathname));
+    char *tailname = getPathTail(pathname);
     printf("head: %i, tail:%s \n", lastPathHeadDirId, tailname);
     tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
     printf("head: %i, tail: %i-%s \n", lastPathHeadDirId, tailId, tailname);
@@ -78,7 +77,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
             return -1; // No memory
 
         strcpy(found[i], name);
-        printf("entry no %i: %20s\tblockID = %i\n", i, found[i],block.entries[i].blockID);
+        printf("entry no %i: %20s\tblockID = %i\n", i, found[i], block.entries[i].blockID);
     }
     *entrynames = found;
     printf("LIBRARY OUTPUT ENDS HERE -------\n");
