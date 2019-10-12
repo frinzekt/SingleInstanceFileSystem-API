@@ -256,7 +256,6 @@ char *getVolPath(const char *volumename) //eg. for sample/Vold you get sample/
 bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBlock)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
 
     int offset = READ_OFFSET;
     fseek(fp, offset, SEEK_SET);
@@ -267,7 +266,6 @@ bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBloc
 bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBlock)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
 
     int offset = READ_OFFSET;
     fseek(fp, offset, SEEK_SET);
