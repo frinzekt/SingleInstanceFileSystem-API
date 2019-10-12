@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 #define MAX_NUM_SUBDIRECTORIES 24 //REVIEW  CHANGE THIS
+#define MAX_PATH_NAME MAX_NUM_SUBDIRECTORIES *SIFS_MAX_NAME_LENGTH
 
 typedef struct
 {
@@ -64,7 +65,7 @@ extern bool modifyDirBlock(FILE *fp, SIFS_BLOCKID dirBlockId, SIFS_DIRBLOCK newD
 extern bool modifyFileBlock(FILE *fp, SIFS_BLOCKID fileBlockId, SIFS_FILEBLOCK newFileBlock); //HAPPENS WHEN THERE'S A FILE DUPLICATE WHICH UPDATES FILENAMES and nfiles, MODIFICATION NAME??
 
 //FIXME
-extern bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char * volumename);                                                          //REMOVES BLOCK IN FILE, NOTHING ELSE
+extern bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char *volumename);                                        //REMOVES BLOCK IN FILE, NOTHING ELSE
 extern bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex); //REMOVES FILEBLOCK  IF remaining nfiles=0 ELSE removes filename
 //extern bool removeDataBlock();
 extern bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId);

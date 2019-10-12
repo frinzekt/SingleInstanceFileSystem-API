@@ -21,6 +21,17 @@ FILE *getFileReaderPointer(const char *volumename)
     }
     return fp;
 }
+FILE *getFileWriterPointer(const char *volumename)
+{
+    FILE *fp = fopen(volumename, "r+");
+    if (fp == NULL)
+    {
+        //READING ERROR
+        SIFS_errno = SIFS_ENOVOL;
+        return NULL;
+    }
+    return fp;
+}
 void resetFilePointerToStart(FILE *fp) //REVIEW
 {
     fseek(fp, 0, SEEK_SET);
@@ -230,9 +241,9 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     return name;
 }
 
-char *getVolPath(const char*volumename)  //eg. for sample/Vold you get sample/
+char *getVolPath(const char *volumename) //eg. for sample/Vold you get sample/
 {
-    char *current_path = malloc(sizeof(char) * PATH_MAX);
+    char *current_path = malloc(sizeof(char) * MAX_PATH_NAME);
     PATH vol_path = getSplitPath(volumename);
     for (int i = 0; i < (vol_path.numSubDir - 1); i++)
     {
@@ -241,6 +252,12 @@ char *getVolPath(const char*volumename)  //eg. for sample/Vold you get sample/
     }
     //printf("%s\n", current_path);
     return current_path;
+}
+bool modifyDirBlock(FILE *fp, SIFS_BLOCKID dirBlockId, SIFS_DIRBLOCK newDirBlock)
+{
+}
+bool modifyFileBlock(FILE *fp, SIFS_BLOCKID fileBlockId, SIFS_FILEBLOCK newFileBlock)
+{
 }
 
 bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)
@@ -253,7 +270,6 @@ bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
     return false;
 }
 
-
 bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char *volumename)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
@@ -264,13 +280,13 @@ bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char *volumename)
         printf("...Nothing to remove...\n");
         return false;
     }
-    
+
     char *volpath = getVolPath(volumename);
 
-    char cpypath[PATH_MAX];
+    char cpypath[MAX_PATH_NAME];
     strcpy(cpypath, volpath);
     strcat(cpypath, "block_cpy.txt");
-    printf("______%s\n",cpypath);
+    printf("______%s\n", cpypath);
 
     //FILE *cpy = fopen(cpypath, "w");
 
