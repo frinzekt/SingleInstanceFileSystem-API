@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <math.h>
 
 FILE *getFileReaderPointer(const char *volumename)
 {
@@ -251,8 +252,8 @@ SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start)
 {
     //REVIEW NEEDS TESTING
     int length = strlen(bitmap);
-    int i = start;
-    for (i; i < length; i++)
+    int i;
+    for (i = start; i < length; i++)
     {
         if (bitmap[i] == SIFS_UNUSED)
         {
@@ -281,6 +282,7 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
             }
             else
             {
+                len_ubit = 0;
                 break;
             }
             
@@ -293,7 +295,7 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
 char *getVolPath(const char*volumename)  //eg. for sample/Vold you get sample/
 {
     //ANCHOR  MIGHT DELETE THIS IN FUTURE, leaving it here for now
-    char *current_path = malloc(sizeof(char) * PATH_MAX);
+    char *current_path = malloc(sizeof(char) * MAX_PATH_NAME);
     PATH vol_path = getSplitPath(volumename);
     for (int i = 0; i < (vol_path.numSubDir - 1); i++)
     {
@@ -321,6 +323,20 @@ bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBl
     fseek(fp, offset, SEEK_SET);
     fwrite(&newBlock, header.blocksize, 1, fp);
 
+    return true;
+}
+
+bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
+{ //TODO
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    //ERROR CHECKING
+    SIFS_DIRBLOCK block = {
+        .name = {dirName},
+        .modtime = time(NULL),
+        .nentries = 0,
+    };
+    fseek(fp, 0, SEEK_END);
+    fwrite(&block, header.blocksize, 1, fp);
     return true;
 }
 
