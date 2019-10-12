@@ -47,7 +47,7 @@ extern char *getPathTail(const char *pathname);
 
 //Unused Blocks
 //FIXME
-extern int getNoBlockRequirement(size_t length, uint32_t nblocks_header);                             // Converts length to number of blocks
+extern int getNoBlockRequirement(size_t length, uint32_t block_size);                             // Converts length to number of blocks
 extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start);                            //RETURNS -1 on failure (if no unused)
 extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req); //Calls Unused BlockID and returns -1 on failure
 
@@ -64,7 +64,7 @@ extern bool modifyDirBlock(FILE *fp, SIFS_BLOCKID dirBlockId, SIFS_DIRBLOCK newD
 extern bool modifyFileBlock(FILE *fp, SIFS_BLOCKID fileBlockId, SIFS_FILEBLOCK newFileBlock); //HAPPENS WHEN THERE'S A FILE DUPLICATE WHICH UPDATES FILENAMES and nfiles, MODIFICATION NAME??
 
 //FIXME
-extern bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char * volumename);                                                          //REMOVES BLOCK IN FILE, NOTHING ELSE
+extern bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId);                                                          //REMOVES BLOCK IN FILE, NOTHING ELSE
 extern bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex); //REMOVES FILEBLOCK  IF remaining nfiles=0 ELSE removes filename
 //extern bool removeDataBlock();
 extern bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId);

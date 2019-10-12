@@ -12,7 +12,7 @@
 
 FILE *getFileReaderPointer(const char *volumename)
 {
-    FILE *fp = fopen(volumename, "r+");
+    FILE *fp = fopen(volumename, "rb+");
     if (fp == NULL)
     {
         //READING ERROR
@@ -44,7 +44,7 @@ SIFS_VOLUME_HEADER getHeader(FILE *fp)
     //FSEEK
     resetFilePointerToStart(fp);
     fread(&header, sizeof header, 1, fp);
-    //printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
+    printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
 
     resetFilePointerToStart(fp);
     return header;
@@ -230,8 +230,58 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     return name;
 }
 
+int getNoBlockRequirement(size_t length, uint32_t block_size)
+{
+    //REVIEW NEEDS TESTING
+    return ceil(length / block_size);
+}
+
+SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start)
+{
+    //REVIEW NEEDS TESTING
+    int length = strlen(bitmap);
+    int i = start;
+    for (i; i < length; i++)
+    {
+        if (bitmap[i] == SIFS_UNUSED)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req)
+{
+    //REVIEW NEEDS TESTING
+    int len_ubit = 0;
+    do
+    {
+        start = getNextUBlockId(bitmap, start);
+        for (int i = start; i < strlen(bitmap); i++)
+        {
+            if (bitmap[i] == SIFS_UNUSED)
+            {
+                len_ubit++;
+                if (len_ubit == nblocks_req)
+                {
+                    return start;
+                }
+            }
+            else
+            {
+                break;
+            }
+            
+        }
+
+    } while (start != -1);
+    return -1;
+}
+
 char *getVolPath(const char*volumename)  //eg. for sample/Vold you get sample/
 {
+    //ANCHOR  MIGHT DELETE THIS IN FUTURE, leaving it here for now
     char *current_path = malloc(sizeof(char) * PATH_MAX);
     PATH vol_path = getSplitPath(volumename);
     for (int i = 0; i < (vol_path.numSubDir - 1); i++)
@@ -254,35 +304,25 @@ bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
 }
 
 
-bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId, char *volumename)
+bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
 
-    if (bitmap[blockId] == SIFS_UNUSED)
+    if (bitmap[blockId] == SIFS_UNUSED || blockId > strlen(bitmap))
     {
         printf("...Nothing to remove...\n");
         return false;
     }
     
-    char *volpath = getVolPath(volumename);
+    /*fseek(fp,1,blockId);
+    fputs("u", fp);
+    resetFilePointerToStart(fp);*/
+    
 
-    char cpypath[PATH_MAX];
-    strcpy(cpypath, volpath);
-    strcat(cpypath, "block_cpy.txt");
-    printf("______%s\n",cpypath);
-
-    //FILE *cpy = fopen(cpypath, "w");
-
-    /*
-
-        code for replacing block with 0's in cpyfile
-
-    */
-
+    //fclose(volumename);
     //remove(volumename);
     //rename(cpypath,volumename);
     //free(volpath);
-    //fclose(volumename);
     return false;
 }
