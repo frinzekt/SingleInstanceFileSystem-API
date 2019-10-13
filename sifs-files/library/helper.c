@@ -406,7 +406,8 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
     //REVIEW NEEDS TESTING
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    SIFS_FILEBLOCK container = getFileBlockById(fp, dirContainerId);
+    SIFS_DIRBLOCK container = getDirBlockById(fp, dirContainerId);
+    SIFS_FILEBLOCK target = getFileBlockById(fp, fileBlockId);
 
     if (bitmap[fileBlockId] != SIFS_FILE || fileBlockId > strlen(bitmap))
     {
@@ -415,29 +416,50 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
         printf("...This is not a file...\n");
         return false;
     }
-    else if (container.nfiles < fileIndex + 1)
+    else if (target.nfiles < fileIndex + 1)
     {
         SIFS_errno = SIFS_ENOENT;
         printf("No such file exists\n");
         return false;
     }
-    int no_block = getNoBlockRequirement(container.length,header.blocksize);
-    //ASSUMPTIONS, firstblockID refers to 1st b block of file
-    if (container.nfiles == 1)
+    int no_block = getNoBlockRequirement(target.length,header.blocksize);
+
+    if (target.nfiles == 1)
     {
-        for (int i = container.firstblockID; i < (no_block + container.firstblockID); i++)
+        //if number of files in target is = 1 then deletes all the b blocks and file block id
+        for (int i = target.firstblockID; i < (no_block + target.firstblockID); i++)
         {
             removeBlockById(fp, i);
         }
-        removeBlockById(fp, dirContainerId);
-        return true;
+        removeBlockById(fp, fileBlockId);
     }
-    
-    for (int i = fileIndex; i < (container.nfiles - fileIndex); i++)
+    else
     {
-        strcpy(container.filenames[i], container.filenames[i + 1]);
+        //if there's more file
+        for (int i = fileIndex; i < (target.nfiles - fileIndex); i++)
+        {
+            //REVIEW not sure about this function, but it basically shifts the file name up by 1 fileindex
+            //eg. filename[1] = "", filename [2] = "file", -> filename[1] = "file"
+            strcpy(target.filenames[i], target.filenames[i + 1]);
+        }
+        modifyFileBlock(fp, fileBlockId, target);
     }
-    modifyFileBlock(fp,dirContainerId,container);
+
+    for (int i = 0; i < container.nentries; i++)
+        {
+            //Same loop as removedirblock
+            SIFS_BLOCKID contentId = container.entries[i].blockID;
+            if (contentId == fileBlockId)
+            {
+                for (int j = i; j < container.nentries; j++)
+                {
+                    container.entries[j].blockID = container.entries[j + 1].blockID;
+                    container.entries[j].fileindex = container.entries[j + 1].fileindex;
+                }
+                container.nentries--;
+            }
+        }
+    modifyFileBlock(fp,dirContainerId,target);
     return true;
 }
 
