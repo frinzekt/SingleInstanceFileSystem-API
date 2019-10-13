@@ -293,19 +293,6 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
     return -1;
 }
 
-char *getVolPath(const char *volumename) //eg. for sample/Vold you get sample/
-{
-    //ANCHOR  MIGHT DELETE THIS IN FUTURE, leaving it here for now
-    char *current_path = malloc(sizeof(char) * MAX_PATH_NAME);
-    PATH vol_path = getSplitPath(volumename);
-    for (int i = 0; i < (vol_path.numSubDir - 1); i++)
-    {
-        strcat(current_path, vol_path.subPathArray[i]);
-        strcat(current_path, "/");
-    }
-    //printf("%s\n", current_path);
-    return current_path;
-}
 bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBlock)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
@@ -356,6 +343,7 @@ bool checkName(FILE *fp, SIFS_BLOCKID dirContainerId, const char *name)
 
 bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
 {
+    //ANCHOR Errno DONE IN THIS FUNCTION
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_BLOCKID currentBlockId = getNextUBlockId(bitmap, START);
@@ -363,13 +351,13 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
     //ERROR CHECK
     if (currentBlockId == -1)
     {
-        SIFS_errno = 0; //FIXME ERROR CANT FIND UBLOCK
+        SIFS_errno = SIFS_ENOSPC; 
         return false;
     }
 
     if (!checkName(fp, dirContainerId, dirName))
     {
-        SIFS_errno = 0; //FIXME ERROR NAME EXIST
+        SIFS_errno = SIFS_EEXIST;
         return false;
     }
     //REWRITE BITMAP
@@ -415,28 +403,48 @@ bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId)
 
 bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fileBlockId, uint32_t fileIndex)
 { //REMOVES ONLY IF THERE IS ONLY ONE INSTANCE OF FILE,
+    //REVIEW NEEDS TESTING
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_FILEBLOCK container = getFileBlockById(fp, dirContainerId);
 
     if (bitmap[fileBlockId] != SIFS_FILE || fileBlockId > strlen(bitmap))
     {
+        //ANCHOR Errno DONE IN THIS FUNCTION
         SIFS_errno = SIFS_ENOTFILE;
         printf("...This is not a file...\n");
-        return false
+        return false;
     }
-
-    /*for (int i = 0; i < container.nfiles; i++)
+    else if (container.nfiles < fileIndex + 1)
     {
-        if (fileBlockId ==)
-    }*/
-
-    return false;
+        SIFS_errno = SIFS_ENOENT;
+        printf("No such file exists\n");
+        return false;
+    }
+    int no_block = getNoBlockRequirement(container.length,header.blocksize);
+    //ASSUMPTIONS, firstblockID refers to 1st b block of file
+    if (container.nfiles == 1)
+    {
+        for (int i = container.firstblockID; i < (no_block + container.firstblockID); i++)
+        {
+            removeBlockById(fp, i);
+        }
+        removeBlockById(fp, dirContainerId);
+        return true;
+    }
+    
+    for (int i = fileIndex; i < (container.nfiles - fileIndex); i++)
+    {
+        strcpy(container.filenames[i], container.filenames[i + 1]);
+    }
+    modifyFileBlock(fp,dirContainerId,container);
+    return true;
 }
 
 bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
 { // calls function to remove directory ... calls modify function to modify container
     //dircontainerid shows blockid of files
+    //ANCHOR Errno DONE IN THIS FUNCTION
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_DIRBLOCK container = getDirBlockById(fp, dirContainerId);
@@ -453,6 +461,7 @@ bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
     {
         SIFS_errno = SIFS_ENOTEMPTY;
         printf("...CANNOT DELETE, HAS ITEMS...\n");
+        return false;
     }
     //getDirBlockById(fp,dirContainerId).entries[i].blockID
 
@@ -462,7 +471,7 @@ bool removeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID dirId)
         SIFS_BLOCKID contentId = container.entries[i].blockID;
         if (contentId == dirId)
         {
-            for (int j = i; j < container.nentries;)
+            for (int j = i; j < container.nentries; j++)
             {
                 container.entries[j].blockID = container.entries[j + 1].blockID;
                 container.entries[j].fileindex = container.entries[j + 1].fileindex;
