@@ -30,7 +30,7 @@ int main(int argcount, char *argvalue[])
         SIFS_fileinfo(argvalue[1], argvalue[2],
                       length, modtime);
 
-        printf("IN SIFS_FILEINFO %ld, %ld", *length, *modtime);
+        printf("IN SIFS_FILEINFO %ld, %ld\n", *length, *modtime);
         SIFS_perror(argvalue[0]);
     }
     return 0;

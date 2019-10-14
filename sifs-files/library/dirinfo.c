@@ -60,8 +60,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     *nentries = block.nentries;
     *modtime = block.modtime;
 
-    printf("SUCCESS DIRINFO\n");
-    info_print(&block);
+    info_print(&block); //REVIEW REMOVE
 
     //TRIPLE POINTER
     //*->StringArray->String
@@ -78,7 +77,6 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
         printf("entry no %i: %20s\tblockID = %i\n", i, found[i], block.entries[i].blockID);
     }
     *entrynames = found;
-    printf("LIBRARY OUTPUT ENDS HERE -------\n");
     fclose(fp);
     return EXIT_SUCCESS;
 }
