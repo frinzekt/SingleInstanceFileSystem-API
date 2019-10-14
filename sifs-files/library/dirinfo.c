@@ -33,22 +33,21 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
 {
     FILE *fp = getFileReaderPointer(volumename);
-    //NULL CHECKER ... return 1 - failure
 
     SIFS_BLOCKID tailId;
     SIFS_BLOCKID lastPathHeadDirId = 0;
-    //if (strcmp(pathname, "0") != 0){  //DOES EXECUTES IN HERE, BUT PRODUCES ERROR WHEN PASSING TO SIFS_DIRINFO
-    lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
-    char *tailname = getPathTail(pathname);
-    printf("head: %i, tail:%s \n", lastPathHeadDirId, tailname);
-    tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
-    printf("head: %i, tail: %i-%s \n", lastPathHeadDirId, tailId, tailname);
-    printf("SIFS ERROR: %i \n", SIFS_errno);
-    /*}
+    if (strcmp(pathname, "0") != 0) //ROOT SELECTION
+    {                               //DOES EXECUTES IN HERE, BUT PRODUCES ERROR WHEN PASSING TO SIFS_DIRINFO
+        lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
+        char *tailname = getPathTail(pathname);
+        tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
+
+        printf("SIFS ERROR: %i \n", SIFS_errno);
+    }
     else
     {
-        tailId = 0;
-    }*/
+        tailId = SIFS_ROOTDIR_BLOCKID;
+    }
 
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
@@ -63,18 +62,15 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     info_print(&block);
 
     //TRIPLE POINTER
-    //EntryIDs -> BlockID -> fileindex -> storing value
-    //??->StringArray->String
-    // * -> Strings
-    //
+    //*->StringArray->String
     char **found = malloc((block.nentries + 1) * sizeof(SIFS_MAX_NAME_LENGTH));
     for (int i = 0; i < block.nentries; i++)
     {
-        //NOTE Strdup is not in ISO C standard (its a POSIX thing)
+        //NOTE Strdup is not in ISO C standard (its POSIX)
         char *name = getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex);
         found[i] = malloc(strlen(name) + 1);
         if (found[i] == NULL)
-            return -1; // No memory
+            return EXIT_FAILURE; // No memory
 
         strcpy(found[i], name);
         printf("entry no %i: %20s\tblockID = %i\n", i, found[i], block.entries[i].blockID);
@@ -82,13 +78,6 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     *entrynames = found;
     printf("LIBRARY OUTPUT ENDS HERE -------\n");
     fclose(fp);
-    return 1;
+    return EXIT_SUCCESS;
 }
 /*
-make remake
-
-running exe
-./sifs_mkvolume [volume name] [block size] [block no]
-./sifs_mkvolume  2000 10
-./sifs_dirinfo sample/volD subdir1
-*/
