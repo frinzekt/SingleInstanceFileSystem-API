@@ -178,7 +178,7 @@ SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
     {
         //ASSIGNS THE CURRENT AS THE NEXT BLOCKID IN THE SUBDIR LINE
         currentBlockID = getDirBlockIdByName(fp, currentBlockID, path.subPathArray[i]);
-        if (currentBlockID < 0) //NON EXISTENT OR NONVALID DIRECTORY - occurs for bitmap f as subdir
+        if ((int)currentBlockID < 0) //NON EXISTENT OR NONVALID DIRECTORY - occurs for bitmap f as subdir
         {
             SIFS_errno = SIFS_ENOENT;
             return INDEX_FAILURE;
@@ -364,6 +364,51 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
     return true;
 }
 
+bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
+{
+    //ANCHOR Errno DONE IN THIS FUNCTION
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    SIFS_BLOCKID currentBlockId = getNextUBlockId(bitmap, START);
+
+    //ERROR CHECK
+    if (currentBlockId == INDEX_FAILURE)
+    {
+        SIFS_errno = SIFS_ENOSPC;
+        return false;
+    }
+
+    if (!checkName(fp, dirContainerId, dirName))
+    {
+        SIFS_errno = SIFS_EEXIST;
+        return false;
+    }
+    //REWRITE BITMAP
+    modifyBitmap(fp, bitmap, currentBlockId, SIFS_DIR);
+
+    //WRITE NEW BLOCK
+
+    int offset = READ_OFFSET;
+    SIFS_DIRBLOCK block = {
+        .modtime = time(NULL),
+        .nentries = 0,
+    };
+
+    strcpy(block.name, dirName);
+    fseek(fp, offset, SEEK_SET);
+    fwrite(&block, header.blocksize, 1, fp);
+
+    //ADD AS NEW ENTRY IN CONTAINER
+    SIFS_DIRBLOCK container = getDirBlockById(fp, dirContainerId);
+    container.entries[container.nentries].blockID = currentBlockId;
+    container.entries[container.nentries].fileindex = 0;
+    container.nentries++;
+
+    modifyDirBlock(fp, dirContainerId, container);
+
+    return true;
+}
+
 bool removeBlockById(FILE *fp, SIFS_BLOCKID blockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
@@ -420,6 +465,7 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
             //eg. filename[1] = "", filename [2] = "file", -> filename[1] = "file"
             strcpy(target.filenames[i], target.filenames[i + 1]);
         }
+        target.nfiles--;
         modifyFileBlock(fp, fileBlockId, target);
     }
 
