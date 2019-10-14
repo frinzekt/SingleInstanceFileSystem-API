@@ -247,7 +247,7 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
 int getNoBlockRequirement(size_t length, uint32_t block_size)
 {
     //REVIEW NEEDS TESTING
-    return ceil(length / block_size);
+    return ceil(length * 1.0 / block_size);
 }
 
 SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start)
@@ -351,7 +351,7 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
     //ERROR CHECK
     if (currentBlockId == -1)
     {
-        SIFS_errno = SIFS_ENOSPC; 
+        SIFS_errno = SIFS_ENOSPC;
         return false;
     }
 
@@ -422,7 +422,7 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
         printf("No such file exists\n");
         return false;
     }
-    int no_block = getNoBlockRequirement(target.length,header.blocksize);
+    int no_block = getNoBlockRequirement(target.length, header.blocksize);
 
     if (target.nfiles == 1)
     {
@@ -446,20 +446,20 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
     }
 
     for (int i = 0; i < container.nentries; i++)
+    {
+        //Same loop as removedirblock
+        SIFS_BLOCKID contentId = container.entries[i].blockID;
+        if (contentId == fileBlockId)
         {
-            //Same loop as removedirblock
-            SIFS_BLOCKID contentId = container.entries[i].blockID;
-            if (contentId == fileBlockId)
+            for (int j = i; j < container.nentries; j++)
             {
-                for (int j = i; j < container.nentries; j++)
-                {
-                    container.entries[j].blockID = container.entries[j + 1].blockID;
-                    container.entries[j].fileindex = container.entries[j + 1].fileindex;
-                }
-                container.nentries--;
+                container.entries[j].blockID = container.entries[j + 1].blockID;
+                container.entries[j].fileindex = container.entries[j + 1].fileindex;
             }
+            container.nentries--;
         }
-    modifyFileBlock(fp,dirContainerId,target);
+    }
+    modifyFileBlock(fp, dirContainerId, target);
     return true;
 }
 
