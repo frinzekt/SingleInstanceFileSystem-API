@@ -244,7 +244,7 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     return name;
 }
 
-int getNoBlockRequirement(size_t length, uint32_t block_size)
+uint32_t getNoBlockRequirement(size_t length, uint32_t block_size)
 {
     //REVIEW NEEDS TESTING
     return ceil(length * 1.0 / block_size);
