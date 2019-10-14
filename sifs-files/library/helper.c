@@ -39,26 +39,14 @@ void resetFilePointerToStart(FILE *fp) //REVIEW
 {
     fseek(fp, 0, SEEK_SET);
 }
-// COMBINE FSEEK THE THEN READ
-size_t fpread(FILE *fp, size_t offset, size_t start, void *buffer, size_t size, size_t nitems)
-{
-    if (fseek(fp, offset, start) != 0)
-    {
-        printf("ERROR");
-        return 0;
-    }
-    return fread(buffer, size, nitems, fp);
-}
 
 SIFS_VOLUME_HEADER getHeader(FILE *fp)
 {
     //READ HEADER
     SIFS_VOLUME_HEADER header;
 
-    //FSEEK
     resetFilePointerToStart(fp);
     fread(&header, sizeof header, 1, fp);
-    printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
 
     return header;
 }
@@ -68,10 +56,8 @@ SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header)
     SIFS_BIT *bitmap = malloc(header.nblocks * sizeof(int) + 1); //REVIEW sizeof(int)
 
     //SKIP TO SPECIFIC BYTE COUNT THEN READ
-    //fpread(fp, sizeof(header), SEEK_SET, bitmap, header.nblocks, header.nblocks);
     fseek(fp, sizeof(header), SEEK_SET);
     fread(bitmap, 1, header.nblocks, fp);
-    //printf("%s %d\n", bitmap, (int)(header.nblocks));
 
     resetFilePointerToStart(fp);
     return bitmap;
@@ -94,18 +80,11 @@ PATH getSplitPath(const char *pathname)
         path.numSubDir++;
         token = strtok(NULL, "/");
     }
-
-    printf("PATH ARRAY: {\n");
-    for (int i = 0; i < path.numSubDir; i++)
-    {
-        printf("%s\n", path.subPathArray[i]);
-    }
-    printf("}\n");
     return path;
 }
 
-#define READ_OFFSET sizeof(header) + header.nblocks + (currentBlockId) * (header.blocksize)
 #define START_OFFSET sizeof(header) + header.nblocks
+#define READ_OFFSET START_OFFSET + (currentBlockId) * (header.blocksize)
 
 SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
@@ -128,12 +107,10 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    // SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS FILEBLOCK
     SIFS_FILEBLOCK *blockptr = malloc(header.blocksize);
-    //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
-    //roodir = sizes of previous block => (1+blockID-1)
+
+    //FINDING THE LOCATION
     int offset = READ_OFFSET;
-    //printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
 
     //File Read
     fseek(fp, offset, SEEK_SET);
@@ -165,7 +142,7 @@ SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const ch
         }
     }
     SIFS_errno = SIFS_ENOENT;
-    return -1; // NON-EXISTENT DIRECTORY AT DIRECTORY
+    return INDEX_FAILURE; // NON-EXISTENT DIRECTORY AT DIRECTORY
 }
 
 SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename)
@@ -188,7 +165,7 @@ SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const c
         }
     }
     SIFS_errno = SIFS_ENOENT;
-    return -1; // NON-EXISTENT FILE AT DIRECTORY
+    return INDEX_FAILURE; // NON-EXISTENT FILE AT DIRECTORY
 }
 
 SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
@@ -203,7 +180,8 @@ SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
         currentBlockID = getDirBlockIdByName(fp, currentBlockID, path.subPathArray[i]);
         if (currentBlockID < 0) //NON EXISTENT OR NONVALID DIRECTORY - occurs for bitmap f as subdir
         {
-            return -1;
+            SIFS_errno = SIFS_ENOENT;
+            return INDEX_FAILURE;
         }
     }
     return currentBlockID;
@@ -262,7 +240,7 @@ SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start)
             return i;
         }
     }
-    return -1;
+    return INDEX_FAILURE;
 }
 
 SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req)
@@ -289,19 +267,8 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
             }
         }
 
-    } while (start != -1);
-    return -1;
-}
-
-bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBlock)
-{
-    SIFS_VOLUME_HEADER header = getHeader(fp);
-
-    int offset = READ_OFFSET;
-    fseek(fp, offset, SEEK_SET);
-    fwrite(&newBlock, header.blocksize, 1, fp);
-
-    return true;
+    } while (start != INDEX_FAILURE);
+    return INDEX_FAILURE;
 }
 
 bool modifyBitmap(FILE *fp, SIFS_BIT *bitmap, SIFS_BLOCKID blockId, char bit)
@@ -313,10 +280,21 @@ bool modifyBitmap(FILE *fp, SIFS_BIT *bitmap, SIFS_BLOCKID blockId, char bit)
     return true;
 }
 
+bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBlock)
+{
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    newBlock.modtime = time(NULL);
+    int offset = READ_OFFSET;
+    fseek(fp, offset, SEEK_SET);
+    fwrite(&newBlock, header.blocksize, 1, fp);
+
+    return true;
+}
+
 bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBlock)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-
+    newBlock.modtime = time(NULL);
     int offset = READ_OFFSET;
     fseek(fp, offset, SEEK_SET);
     fwrite(&newBlock, header.blocksize, 1, fp);
@@ -347,9 +325,9 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_BLOCKID currentBlockId = getNextUBlockId(bitmap, START);
-    printf("DIR NAME: %s", dirName);
+
     //ERROR CHECK
-    if (currentBlockId == -1)
+    if (currentBlockId == INDEX_FAILURE)
     {
         SIFS_errno = SIFS_ENOSPC;
         return false;
@@ -370,8 +348,8 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
         .modtime = time(NULL),
         .nentries = 0,
     };
+
     strcpy(block.name, dirName);
-    printf("BLOCK name:%s, modt:%ld, nentries:%d", block.name, block.modtime, block.nentries);
     fseek(fp, offset, SEEK_SET);
     fwrite(&block, header.blocksize, 1, fp);
 

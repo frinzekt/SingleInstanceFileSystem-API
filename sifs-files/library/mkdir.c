@@ -10,9 +10,10 @@
 int SIFS_mkdir(const char *volumename, const char *pathname)
 {
     FILE *fp = getFileReaderPointer(volumename);
+    CHECK_VOLUME_EXIST
+
     SIFS_BLOCKID container = getDirBlockIdBeforePathEnds(fp, pathname);
     char *tail = getPathTail(pathname);
-    printf("TAIL HERE %s\n", tail);
 
     if (!writeDirBlock(fp, container, tail))
     { //ERROR CHECKS

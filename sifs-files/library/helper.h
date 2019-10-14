@@ -11,7 +11,13 @@
 
 #define MAX_NUM_SUBDIRECTORIES 24 //REVIEW  CHANGE THIS
 #define MAX_PATH_NAME MAX_NUM_SUBDIRECTORIES *SIFS_MAX_NAME_LENGTH
-
+#define INDEX_FAILURE -1 //CUSTOM FAILURE OF FUNCTION
+#define CHECK_VOLUME_EXIST   \
+    if (fp == NULL)          \
+    {                        \
+        SIFS_errno = 3;      \
+        return EXIT_FAILURE; \
+    }
 typedef struct
 {
     int numSubDir;

@@ -25,6 +25,7 @@ int main(int argcount, char *argvalue[])
     {
         //CHANGE WHATEVER IS IN HERE
         SIFS_mkdir(argvalue[1], argvalue[2]);
+        SIFS_perror(argvalue[0]);
     }
     return 0;
 }

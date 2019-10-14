@@ -26,7 +26,7 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
 
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
-        return 1;
+        return EXIT_FAILURE;
     }
 
     SIFS_FILEBLOCK block = getFileBlockById(fp, tailId);
@@ -39,6 +39,5 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
     printf("modtime: %ld", *modtime);
     printf("API OUTPUT ENDS HERE:\n");
 
-    SIFS_errno = SIFS_ENOTYET;
-    return 1;
+    return EXIT_SUCCESS;
 }

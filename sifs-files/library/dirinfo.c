@@ -51,9 +51,10 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
 
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
-        return 1;
+        return EXIT_FAILURE;
     }
 
+    //INTERFACING POINTERS
     SIFS_DIRBLOCK block = getDirBlockById(fp, tailId);
     *nentries = block.nentries;
     *modtime = block.modtime;
@@ -80,4 +81,3 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     fclose(fp);
     return EXIT_SUCCESS;
 }
-/*
