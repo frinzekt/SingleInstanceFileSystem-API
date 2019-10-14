@@ -11,7 +11,18 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
 {
     FILE *fp = getFileReaderPointer(volumename);
     CHECK_VOLUME_EXIST
-    
+
+    char *tailname = getPathTail(pathname);
+    SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
+    SIFS_BLOCKID tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
+
+    if ((tailId == -1) || (lastPathHeadDirId == -1))
+    {
+        return EXIT_FAILURE;
+    }
+
+    removeDirBlock(fp, lastPathHeadDirId, tailId);
+
     SIFS_errno = SIFS_ENOTYET;
-    return 1;
+    return EXIT_SUCCESS;
 }

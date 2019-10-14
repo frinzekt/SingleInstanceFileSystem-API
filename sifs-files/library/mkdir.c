@@ -12,10 +12,16 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
     FILE *fp = getFileReaderPointer(volumename);
     CHECK_VOLUME_EXIST
 
-    SIFS_BLOCKID container = getDirBlockIdBeforePathEnds(fp, pathname);
+    SIFS_BLOCKID containerId = getDirBlockIdBeforePathEnds(fp, pathname);
     char *tail = getPathTail(pathname);
 
-    if (!writeDirBlock(fp, container, tail))
+    //PATH ERROR CHECK
+    if (containerId == -1)
+    {
+        return EXIT_FAILURE;
+    }
+
+    if (!writeDirBlock(fp, containerId, tail))
     { //ERROR CHECKS
         return EXIT_FAILURE;
     }
