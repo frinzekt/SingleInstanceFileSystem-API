@@ -23,6 +23,6 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
 
     removeDirBlock(fp, lastPathHeadDirId, tailId);
 
-    SIFS_errno = SIFS_ENOTYET;
+    fclose(fp);
     return EXIT_SUCCESS;
 }

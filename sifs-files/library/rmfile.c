@@ -25,11 +25,12 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
     {
         return EXIT_FAILURE;
     }
+    //REMOVE FILE ERROR CHECK
     if (removeFileBlockById(fp, lastPathHeadDirId, tailId, tailIndex))
     {
         return EXIT_FAILURE;
     }
 
-    SIFS_errno = SIFS_ENOTYET;
-    return 1;
+    fclose(fp);
+    return EXIT_SUCCESS;
 }
