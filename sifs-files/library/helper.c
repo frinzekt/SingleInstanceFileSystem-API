@@ -231,11 +231,11 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     //printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
     if (IsDir)
     {
-        name = getDirBlockById(fp, currentBlockID).name;
+        strcpy(name,getDirBlockById(fp, currentBlockID).name);
     }
     else if (IsFile)
     {
-        name = getFileBlockById(fp, currentBlockID).filenames[fileindex];
+        strcpy(name, getFileBlockById(fp, currentBlockID).filenames[fileindex]);
     }
     else
     {
@@ -497,14 +497,21 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
     {
         //Same loop as removedirblock
         SIFS_BLOCKID contentId = container.entries[i].blockID;
+        uint32_t contentIndex = container.entries[i].fileindex;
         if (contentId == fileBlockId)
         {
+            if(contentIndex==fileIndex){
             for (int j = i; j < container.nentries; j++)
             {
                 container.entries[j].blockID = container.entries[j + 1].blockID;
                 container.entries[j].fileindex = container.entries[j + 1].fileindex;
             }
             container.nentries--;
+            }
+            else if(contentIndex>fileIndex)
+            { // SHIFTING FILE INDEX IN THE DIRECTORY IF IT IS FURTHER
+                container.entries[i].fileindex --;
+            }
         }
     }
     modifyDirBlock(fp, dirContainerId, container);
