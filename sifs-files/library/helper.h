@@ -37,7 +37,7 @@ extern SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header);
 //Returns -1 for NON-EXISTENT DIRECTORY, otherwise returns BlockID
 extern SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname);
 extern SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename);
-
+extern uint32_t getFileBlockIndexByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename);
 //NO BITMAP CHECKING DONE HERE SO CHECK BITMAP BEFORE CALLING THIS FUNCTION
 extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
@@ -62,7 +62,7 @@ extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID sta
 // CAN FAIL IF THERE IS NOT ENOUGH LENGTH
 //FIXME
 //NOTE  dirContainerId is the blockID of where the entry(file or directory) belongs to
-extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId); // FIXME  needs more parameters
+extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName); // FIXME  needs more parameters
 //extern bool writeDataBlock(FILE *fp, );
 extern bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName);
 

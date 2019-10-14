@@ -21,6 +21,7 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
     strcpy(tailname, getPathTail(pathname));
     SIFS_BLOCKID tailId = getFileBlockIdByName(fp, lastPathHeadDirId, tailname);
 
+    //ERROR CHECK OF THE PATH AND FILE EXISTENCE
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
         return EXIT_FAILURE;

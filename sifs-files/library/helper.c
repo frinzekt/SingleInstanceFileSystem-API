@@ -168,6 +168,29 @@ SIFS_BLOCKID getFileBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const c
     return INDEX_FAILURE; // NON-EXISTENT FILE AT DIRECTORY
 }
 
+uint32_t getFileBlockIndexByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *filename)
+{ //REVIEW  NEEDS TESTING
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    SIFS_DIRBLOCK currentBlock = getDirBlockById(fp, currentBlockID);
+
+    for (int i = 0; i < currentBlock.nentries; i++)
+    {
+        SIFS_BLOCKID entryblockID = currentBlock.entries[i].blockID;
+        if (bitmap[entryblockID] == SIFS_FILE) //ONLY CONSIDERS DIRECTORY BLOCK
+        {
+            SIFS_FILEBLOCK entryFile = getFileBlockById(fp, entryblockID);
+            uint32_t fileIndex = currentBlock.entries[i].fileindex;
+            if (strcmp(filename, entryFile.filenames[fileIndex]) == 0) //MATCHER FOR FILE BLOCK AND INDEX
+            {
+                return fileIndex;
+            }
+        }
+    }
+    SIFS_errno = SIFS_ENOENT;
+    return INDEX_FAILURE; // NON-EXISTENT FILE AT DIRECTORY
+}
+
 SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
 { //REVIEW  NEEDS FURTHER TESTING FOR NESTED DIRECTORY
     PATH path = getSplitPath(pathname);
@@ -178,7 +201,7 @@ SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname)
     {
         //ASSIGNS THE CURRENT AS THE NEXT BLOCKID IN THE SUBDIR LINE
         currentBlockID = getDirBlockIdByName(fp, currentBlockID, path.subPathArray[i]);
-        if ((int)currentBlockID < 0) //NON EXISTENT OR NONVALID DIRECTORY - occurs for bitmap f as subdir
+        if (currentBlockID < SIFS_ROOTDIR_BLOCKID) //NON EXISTENT OR NONVALID DIRECTORY - occurs for bitmap f as subdir
         {
             SIFS_errno = SIFS_ENOENT;
             return INDEX_FAILURE;
@@ -274,7 +297,7 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
 bool modifyBitmap(FILE *fp, SIFS_BIT *bitmap, SIFS_BLOCKID blockId, char bit)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    bitmap[blockId] = SIFS_DIR;
+    bitmap[blockId] = bit;
     fseek(fp, sizeof(header), SEEK_SET);
     fwrite(bitmap, header.nblocks, 1, fp);
     return true;
@@ -483,7 +506,7 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
             container.nentries--;
         }
     }
-    modifyFileBlock(fp, dirContainerId, target);
+    modifyDirBlock(fp, dirContainerId, container);
     return true;
 }
 
