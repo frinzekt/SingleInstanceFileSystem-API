@@ -263,6 +263,7 @@ SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start)
             return i;
         }
     }
+    SIFS_errno = SIFS_ENOSPC;
     return INDEX_FAILURE;
 }
 
