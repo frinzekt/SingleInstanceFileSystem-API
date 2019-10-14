@@ -10,6 +10,9 @@
 int SIFS_readfile(const char *volumename, const char *pathname,
                   void **data, size_t *nbytes)
 {
+    FILE *fp = getFileReaderPointer(volumename);
+    CHECK_VOLUME_EXIST
+    
     SIFS_errno = SIFS_ENOTYET;
     return 1;
 }

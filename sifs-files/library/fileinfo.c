@@ -13,7 +13,7 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
                   size_t *length, time_t *modtime)
 {
     FILE *fp = getFileReaderPointer(volumename);
-    //NULL CHECKER ... return 1 - failure
+    CHECK_VOLUME_EXIST
 
     SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
     char tailname[SIFS_MAX_NAME_LENGTH];

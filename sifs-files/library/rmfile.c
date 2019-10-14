@@ -9,6 +9,9 @@
 // remove an existing file from an existing volume
 int SIFS_rmfile(const char *volumename, const char *pathname)
 {
+    FILE *fp = getFileReaderPointer(volumename);
+    CHECK_VOLUME_EXIST
+
     SIFS_errno = SIFS_ENOTYET;
     return 1;
 }

@@ -33,6 +33,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
 {
     FILE *fp = getFileReaderPointer(volumename);
+    CHECK_VOLUME_EXIST
 
     SIFS_BLOCKID tailId;
     SIFS_BLOCKID lastPathHeadDirId = 0;
