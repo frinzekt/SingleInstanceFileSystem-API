@@ -47,6 +47,8 @@ extern char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fi
 // b is the last head
 extern SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
 
+extern int getOffset(FILE *fp,SIFS_BLOCKID id);
+
 //Definitions from https://www.geeksforgeeks.org/python-os-path-split-method/
 //Tail is the name at the end of the path
 //Head is the pathname without the tail

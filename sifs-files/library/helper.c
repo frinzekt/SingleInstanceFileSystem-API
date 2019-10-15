@@ -83,8 +83,12 @@ PATH getSplitPath(const char *pathname)
     return path;
 }
 
-#define START_OFFSET sizeof(header) + header.nblocks
-#define READ_OFFSET START_OFFSET + (currentBlockId) * (header.blocksize)
+//CHANGE ALL READ_OFFSET TO THIS ONE FUNCTION - put as an extern
+int getOffset(FILE *fp,SIFS_BLOCKID id){
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+
+    return sizeof(header) + header.nblocks + (id) * (header.blocksize);
+}
 
 SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
@@ -94,7 +98,7 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
     //roodir = sizes of previous block => (1+blockID-1)
-    int offset = READ_OFFSET;
+    int offset = getOffset(fp,currentBlockId);
     //printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
 
     //File Read
@@ -110,7 +114,7 @@ SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
     SIFS_FILEBLOCK *blockptr = malloc(header.blocksize);
 
     //FINDING THE LOCATION
-    int offset = READ_OFFSET;
+    int offset = getOffset(fp,currentBlockId);
 
     //File Read
     fseek(fp, offset, SEEK_SET);
@@ -308,7 +312,7 @@ bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBloc
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     newBlock.modtime = time(NULL);
-    int offset = READ_OFFSET;
+    int offset = getOffset(fp,currentBlockId);
     fseek(fp, offset, SEEK_SET);
     fwrite(&newBlock, header.blocksize, 1, fp);
 
@@ -319,7 +323,7 @@ bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBl
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     newBlock.modtime = time(NULL);
-    int offset = READ_OFFSET;
+    int offset = getOffset(fp,currentBlockId);
     fseek(fp, offset, SEEK_SET);
     fwrite(&newBlock, header.blocksize, 1, fp);
 
@@ -367,7 +371,7 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
 
     //WRITE NEW BLOCK
 
-    int offset = READ_OFFSET;
+    int offset = getOffset(fp,currentBlockId);
     SIFS_DIRBLOCK block = {
         .modtime = time(NULL),
         .nentries = 0,
@@ -412,7 +416,7 @@ bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
 
     //WRITE NEW BLOCK
 
-    int offset = READ_OFFSET;
+    int offset = getOffset(fp,currentBlockId);
     SIFS_DIRBLOCK block = {
         .modtime = time(NULL),
         .nentries = 0,
@@ -500,13 +504,14 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
         uint32_t contentIndex = container.entries[i].fileindex;
         if (contentId == fileBlockId)
         {
-            if(contentIndex==fileIndex){
-            for (int j = i; j < container.nentries; j++)
+            if(contentIndex==fileIndex)
             {
-                container.entries[j].blockID = container.entries[j + 1].blockID;
-                container.entries[j].fileindex = container.entries[j + 1].fileindex;
-            }
-            container.nentries--;
+                for (int j = i; j < container.nentries; j++)
+                {
+                    container.entries[j].blockID = container.entries[j + 1].blockID;
+                    container.entries[j].fileindex = container.entries[j + 1].fileindex;
+                }
+                container.nentries--;
             }
             else if(contentIndex>fileIndex)
             { // SHIFTING FILE INDEX IN THE DIRECTORY IF IT IS FURTHER

@@ -21,11 +21,13 @@ int main(int argcount, char *argvalue[])
         fprintf(stderr, "Usage: %s value1 [value2 ...]\n", argvalue[0]);
         exit(EXIT_FAILURE); // Exit indicating failure
     }
-    else
-    {
-        //CHANGE WHATEVER IS IN HERE
-        SIFS_mkdir(argvalue[1], argvalue[2]);
-        SIFS_perror(argvalue[0]);
-    }
+    void *data;
+    size_t nbytes;
+    SIFS_readfile(argvalue[1],argvalue[2],&data,&nbytes);
+    
+    FILE *readfile = fopen(argvalue[3], "w");
+    fwrite(data, 1, nbytes, readfile);
+    fclose(readfile);
+
     return 0;
 }

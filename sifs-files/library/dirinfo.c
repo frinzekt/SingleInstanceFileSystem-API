@@ -71,12 +71,6 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     for (int i = 0; i < block.nentries; i++)
     {
         char *name = getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex);
-        //printf("namee------- %s \n", getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex);
-        /*found[i] = malloc(strlen(name) + 1);
-        if (found[i] == NULL)
-            return EXIT_FAILURE; // No memory
-
-        strcpy(found[i], name);*/ 
         found[i] = strdup(name);
         printf("entry no %i: %20s\tblockID = %i\n", i, found[i], block.entries[i].blockID);
     }
