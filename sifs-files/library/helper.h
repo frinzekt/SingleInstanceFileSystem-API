@@ -47,7 +47,7 @@ extern char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fi
 // b is the last head
 extern SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
 
-extern int getOffset(FILE *fp,SIFS_BLOCKID id);
+extern int getOffset(FILE *fp, SIFS_BLOCKID id);
 
 //Definitions from https://www.geeksforgeeks.org/python-os-path-split-method/
 //Tail is the name at the end of the path
@@ -64,8 +64,8 @@ extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID sta
 // CAN FAIL IF THERE IS NOT ENOUGH LENGTH
 //FIXME
 //NOTE  dirContainerId is the blockID of where the entry(file or directory) belongs to
-extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName); // FIXME  needs more parameters
-//extern bool writeDataBlock(FILE *fp, );
+extern bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *fileName, void *data, size_t length); // FIXME  needs more parameters
+extern bool writeDataBlock(FILE *fp, SIFS_BLOCKID firstDataBlockId, void *data, int noOfBlocksNeed);
 extern bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName);
 
 //BLOCK REWRITER, takes ID and the new block(WITH THE NEW DETAILS) then rewrites that

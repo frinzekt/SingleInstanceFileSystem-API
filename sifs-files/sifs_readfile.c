@@ -23,8 +23,8 @@ int main(int argcount, char *argvalue[])
     }
     void *data;
     size_t nbytes;
-    SIFS_readfile(argvalue[1],argvalue[2],&data,&nbytes);
-    
+    SIFS_readfile(argvalue[1], argvalue[2], &data, &nbytes);
+
     FILE *readfile = fopen(argvalue[3], "w");
     fwrite(data, 1, nbytes, readfile);
     fclose(readfile);

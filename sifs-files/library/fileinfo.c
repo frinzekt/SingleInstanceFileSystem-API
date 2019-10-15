@@ -31,6 +31,5 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
     SIFS_FILEBLOCK block = getFileBlockById(fp, tailId);
     *length = block.length;
     *modtime = block.modtime;
-
     return EXIT_SUCCESS;
 }

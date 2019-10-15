@@ -84,7 +84,8 @@ PATH getSplitPath(const char *pathname)
 }
 
 //CHANGE ALL READ_OFFSET TO THIS ONE FUNCTION - put as an extern
-int getOffset(FILE *fp,SIFS_BLOCKID id){
+int getOffset(FILE *fp, SIFS_BLOCKID id)
+{
     SIFS_VOLUME_HEADER header = getHeader(fp);
 
     return sizeof(header) + header.nblocks + (id) * (header.blocksize);
@@ -98,7 +99,7 @@ SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 
     //OFFSET... header size, bitmap size, rootdir size, sizes of previous block
     //roodir = sizes of previous block => (1+blockID-1)
-    int offset = getOffset(fp,currentBlockId);
+    int offset = getOffset(fp, currentBlockId);
     //printf("OFFSET: %i bitmap:%c\n", offset, bitmap[currentBlockID]);
 
     //File Read
@@ -114,7 +115,7 @@ SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
     SIFS_FILEBLOCK *blockptr = malloc(header.blocksize);
 
     //FINDING THE LOCATION
-    int offset = getOffset(fp,currentBlockId);
+    int offset = getOffset(fp, currentBlockId);
 
     //File Read
     fseek(fp, offset, SEEK_SET);
@@ -135,7 +136,7 @@ SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const ch
     {
 
         SIFS_BLOCKID entryblockID = currentBlock.entries[i].blockID;
-        if (bitmap[entryblockID] == SIFS_DIR) //ONLY CONSIDERS DIRECTORY BLOCK
+        if (bitmap[entryblockID] == SIFS_DIR) //ONLY CONSIDERS DIRECTORY BLOCK FIXME : Include else if for SIFS_FILE
         {
             SIFS_DIRBLOCK entryDir = getDirBlockById(fp, entryblockID);
             printf("COMPARING: %s and %s\n", dirname, entryDir.name);
@@ -235,7 +236,7 @@ char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex
     //printf("BITMAP:%c, ISDIR: %i, ISFILE %i\n", bitmap[currentBlockID], IsDir, IsFile);
     if (IsDir)
     {
-        strcpy(name,getDirBlockById(fp, currentBlockID).name);
+        strcpy(name, getDirBlockById(fp, currentBlockID).name);
     }
     else if (IsFile)
     {
@@ -312,7 +313,7 @@ bool modifyDirBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_DIRBLOCK newBloc
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     newBlock.modtime = time(NULL);
-    int offset = getOffset(fp,currentBlockId);
+    int offset = getOffset(fp, currentBlockId);
     fseek(fp, offset, SEEK_SET);
     fwrite(&newBlock, header.blocksize, 1, fp);
 
@@ -323,7 +324,7 @@ bool modifyFileBlock(FILE *fp, SIFS_BLOCKID currentBlockId, SIFS_FILEBLOCK newBl
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
     newBlock.modtime = time(NULL);
-    int offset = getOffset(fp,currentBlockId);
+    int offset = getOffset(fp, currentBlockId);
     fseek(fp, offset, SEEK_SET);
     fwrite(&newBlock, header.blocksize, 1, fp);
 
@@ -337,13 +338,12 @@ bool checkName(FILE *fp, SIFS_BLOCKID dirContainerId, const char *name)
     {
         SIFS_BLOCKID currentBlockId = dirContainer.entries[i].blockID;
         uint32_t currentFileIndex = dirContainer.entries[i].fileindex;
-
+        printf("NAME COMPARE: %s and %s\n", getBlockNameById(fp, currentBlockId, currentFileIndex), name);
         if (strcmp(getBlockNameById(fp, currentBlockId, currentFileIndex), name) == 0)
         {
             return false;
         }
     }
-
     return true;
 }
 
@@ -371,7 +371,7 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
 
     //WRITE NEW BLOCK
 
-    int offset = getOffset(fp,currentBlockId);
+    int offset = getOffset(fp, currentBlockId);
     SIFS_DIRBLOCK block = {
         .modtime = time(NULL),
         .nentries = 0,
@@ -392,47 +392,112 @@ bool writeDirBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
     return true;
 }
 
-bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *dirName)
+bool writeDataBlock(FILE *fp, SIFS_BLOCKID firstDataBlockId, void *data, int noOfBlocksNeed)
 {
-    //ANCHOR Errno DONE IN THIS FUNCTION
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    SIFS_BLOCKID currentBlockId = getNextUBlockId(bitmap, START);
 
-    //ERROR CHECK
-    if (currentBlockId == INDEX_FAILURE)
+    //Update Bitmap
+    for (SIFS_BLOCKID i = 0; i < noOfBlocksNeed; i++)
     {
-        SIFS_errno = SIFS_ENOSPC;
-        return false;
+        modifyBitmap(fp, bitmap, firstDataBlockId + i, SIFS_DATABLOCK);
     }
 
-    if (!checkName(fp, dirContainerId, dirName))
+    //WRITE TO FILE
+    int offset = getOffset(fp, firstDataBlockId);
+    fseek(fp, offset, SEEK_SET);
+    fwrite(data, header.blocksize * noOfBlocksNeed, 1, fp);
+    return true;
+}
+
+bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *fileName, void *data, size_t length)
+{
+    //ANCHOR Errno DONE IN THIS FUNCTION
+    bool IsDuplicate = false;
+    SIFS_VOLUME_HEADER header = getHeader(fp);
+    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+
+    int noRequiredBlocks = getNoBlockRequirement(length, header.blocksize);
+
+    SIFS_BLOCKID currentBlockId = 0;
+    SIFS_BLOCKID firstDataBlockId = 0;
+    SIFS_BLOCKID fileBlockId = 0;
+    uint32_t fileIndex = 0;
+
+    if (!checkName(fp, dirContainerId, fileName))
     {
         SIFS_errno = SIFS_EEXIST;
         return false;
     }
-    //REWRITE BITMAP
-    modifyBitmap(fp, bitmap, currentBlockId, SIFS_DIR);
 
-    //WRITE NEW BLOCK
+    //MD5 Calculation
+    unsigned char *md5 = malloc(MD5_BYTELEN + 1);
+    char *md5_str = malloc(MD5_STRLEN + 1);
+    MD5_buffer(data, length, md5);
+    strcpy(md5_str, MD5_format(md5));
 
-    int offset = getOffset(fp,currentBlockId);
-    SIFS_DIRBLOCK block = {
-        .modtime = time(NULL),
-        .nentries = 0,
-    };
+    //DUPLICATE OR NOT ?
+    for (SIFS_BLOCKID i = 0; i < header.nblocks; i++)
+    {
+        if (bitmap[i] == SIFS_FILE) //ITERATE OVER ALL FILES
+        {
 
-    strcpy(block.name, dirName);
-    fseek(fp, offset, SEEK_SET);
-    fwrite(&block, header.blocksize, 1, fp);
+            SIFS_FILEBLOCK block = getFileBlockById(fp, i);
+            if (strcmp(md5_str, MD5_format(block.md5)) == 0)
+            { //IT IS A DUPLICATE - JUST ADD NAME IN FILEBLOCK
+                IsDuplicate = true;
+                fileBlockId = i;
+                fileIndex = block.nfiles;
+
+                strcpy(block.filenames[block.nfiles], fileName);
+                block.nfiles++;
+
+                modifyFileBlock(fp, fileBlockId, block);
+                break;
+            }
+        }
+    }
+    if (!IsDuplicate) //GET IDs and Spaces
+    {
+        currentBlockId = getNextUBlockId(bitmap, START);
+        firstDataBlockId = getNextUBlockIdWithLength(bitmap, currentBlockId + 1, noRequiredBlocks);
+
+        //SPACE ERROR CHECK
+        if ((currentBlockId == INDEX_FAILURE) || (firstDataBlockId == INDEX_FAILURE))
+        {
+            SIFS_errno = SIFS_ENOSPC;
+            return false;
+        }
+    }
 
     //ADD AS NEW ENTRY IN CONTAINER
     SIFS_DIRBLOCK container = getDirBlockById(fp, dirContainerId);
-    container.entries[container.nentries].blockID = currentBlockId;
-    container.entries[container.nentries].fileindex = 0;
+    container.entries[container.nentries].blockID = (IsDuplicate) ? fileBlockId : currentBlockId;
+    container.entries[container.nentries].fileindex = (IsDuplicate) ? fileIndex : 0;
     container.nentries++;
-
     modifyDirBlock(fp, dirContainerId, container);
+
+    if (IsDuplicate)
+    {
+        return true;
+    }
+    else //CREATE FILE BLOCK AND DATA BLOCK
+    {
+        SIFS_FILEBLOCK block = {
+            .modtime = time(NULL),
+            .length = length,
+            .firstblockID = firstDataBlockId,
+            .nfiles = 1,
+        };
+        memcpy(block.md5, md5, MD5_BYTELEN);
+        strcpy(block.filenames[0], fileName);
+        printf("IS SEG FAULT HERE?? \n");
+        int offset = getOffset(fp, currentBlockId);
+        fseek(fp, offset, SEEK_SET);
+        fwrite(&block, header.blocksize, 1, fp);
+        modifyBitmap(fp, bitmap, currentBlockId, SIFS_FILE);
+        writeDataBlock(fp, firstDataBlockId, data, noRequiredBlocks);
+    }
 
     return true;
 }
@@ -504,7 +569,7 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
         uint32_t contentIndex = container.entries[i].fileindex;
         if (contentId == fileBlockId)
         {
-            if(contentIndex==fileIndex)
+            if (contentIndex == fileIndex)
             {
                 for (int j = i; j < container.nentries; j++)
                 {
@@ -513,9 +578,9 @@ bool removeFileBlockById(FILE *fp, SIFS_BLOCKID dirContainerId, SIFS_BLOCKID fil
                 }
                 container.nentries--;
             }
-            else if(contentIndex>fileIndex)
+            else if (contentIndex > fileIndex)
             { // SHIFTING FILE INDEX IN THE DIRECTORY IF IT IS FURTHER
-                container.entries[i].fileindex --;
+                container.entries[i].fileindex--;
             }
         }
     }
