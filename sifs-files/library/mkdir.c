@@ -10,30 +10,22 @@
 int SIFS_mkdir(const char *volumename, const char *pathname)
 {
     FILE *fp = getFileReaderPointer(volumename);
-    printf("RESULT: %i\n", getDirBlockIdBeforePathEnds(fp, pathname));
-    // FIXME  For now assume pathname is single string
-    SIFS_DIRBLOCK dir_block = {
-        .name = "a", //FIXME
-        .modtime = time(NULL),
-        .nentries = 0,
-    };
+    CHECK_VOLUME_EXIST
 
-    SIFS_VOLUME_HEADER header = getHeader(fp);
-    printf("mkdir: ");
-    printf("blocksize=%i,  nblocks=%i\n", (int)header.blocksize, (int)header.nblocks);
+    SIFS_BLOCKID containerId = getDirBlockIdBeforePathEnds(fp, pathname);
+    char *tail = getPathTail(pathname);
 
-    SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    printf("mkdir: ");
-    printf("%s %d\n", bitmap, (int)(header.nblocks));
+    //PATH ERROR CHECK
+    if (containerId == -1)
+    {
+        return EXIT_FAILURE;
+    }
 
-    //REVIEW Remove
-    printf("%s\n", volumename);
-    printf("%s\n", pathname);
-    printf("%s\n", dir_block.name);
-    printf("%ld\n", dir_block.modtime);
-    printf("%d\n", dir_block.nentries);
+    if (!writeDirBlock(fp, containerId, tail))
+    { //ERROR CHECKS
+        return EXIT_FAILURE;
+    }
 
-    SIFS_errno = SIFS_ENOTYET;
     fclose(fp);
-    return 1;
+    return EXIT_SUCCESS; //SUCCESS
 }

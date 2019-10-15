@@ -9,6 +9,20 @@
 // remove an existing directory from an existing volume
 int SIFS_rmdir(const char *volumename, const char *pathname)
 {
-    SIFS_errno = SIFS_ENOTYET;
-    return 1;
+    FILE *fp = getFileReaderPointer(volumename);
+    CHECK_VOLUME_EXIST
+
+    char *tailname = getPathTail(pathname);
+    SIFS_BLOCKID lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
+    SIFS_BLOCKID tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
+
+    if ((tailId == -1) || (lastPathHeadDirId == -1))
+    {
+        return EXIT_FAILURE;
+    }
+
+    removeDirBlock(fp, lastPathHeadDirId, tailId);
+
+    fclose(fp);
+    return EXIT_SUCCESS;
 }

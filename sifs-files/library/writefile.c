@@ -10,6 +10,16 @@
 int SIFS_writefile(const char *volumename, const char *pathname,
                    void *data, size_t nbytes)
 {
-    SIFS_errno = SIFS_ENOTYET;
-    return 1;
+    FILE *fp = getFileReaderPointer(volumename);
+    CHECK_VOLUME_EXIST
+
+    SIFS_BLOCKID containerId = getDirBlockIdBeforePathEnds(fp, pathname);
+    char *tail = getPathTail(pathname);
+
+    if (writeFileBlock(fp, containerId, tail, data, nbytes))
+    {
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
