@@ -275,10 +275,13 @@ SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start)
 SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req)
 {
     //REVIEW NEEDS TESTING
-    int len_ubit = 0;
+    int len_ubit = 1;
     do
     {
         start = getNextUBlockId(bitmap, start);
+        if (start == INDEX_FAILURE)
+        { // CANT FIND ANYMORE UBLOCKS
+        }
         for (int i = start; i < strlen(bitmap); i++)
         {
             if (bitmap[i] == SIFS_UNUSED)
@@ -291,11 +294,11 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
             }
             else
             {
-                len_ubit = 0;
+                start += len_ubit;
+                len_ubit = 1;
                 break;
             }
         }
-
     } while (start != INDEX_FAILURE);
     return INDEX_FAILURE;
 }
@@ -461,7 +464,6 @@ bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *fileName,
     {
         currentBlockId = getNextUBlockId(bitmap, START);
         firstDataBlockId = getNextUBlockIdWithLength(bitmap, currentBlockId + 1, noRequiredBlocks);
-
         //SPACE ERROR CHECK
         if ((currentBlockId == INDEX_FAILURE) || (firstDataBlockId == INDEX_FAILURE))
         {
@@ -491,7 +493,7 @@ bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *fileName,
         };
         memcpy(block.md5, md5, MD5_BYTELEN);
         strcpy(block.filenames[0], fileName);
-        printf("IS SEG FAULT HERE?? \n");
+
         int offset = getOffset(fp, currentBlockId);
         fseek(fp, offset, SEEK_SET);
         fwrite(&block, header.blocksize, 1, fp);
