@@ -16,18 +16,22 @@
 int main(int argcount, char *argvalue[])
 {
     // Check the number of command-line arguments
-    if (argcount < 3)
+    if (argcount != 4)
     {
-        fprintf(stderr, "Usage: %s value1 [value2 ...]\n", argvalue[0]);
+        fprintf(stderr, "Usage: %s [VolumeName] [PathName] [FileYouWantToReadFrom]\n", argvalue[0]);
         exit(EXIT_FAILURE); // Exit indicating failure
     }
-    void *data;
-    size_t nbytes;
-    SIFS_readfile(argvalue[1], argvalue[2], &data, &nbytes);
+    else
+    {
+        void *data;
+        size_t nbytes;
+        SIFS_readfile(argvalue[1], argvalue[2], &data, &nbytes);
 
-    FILE *readfile = fopen(argvalue[3], "w");
-    fwrite(data, 1, nbytes, readfile);
-    fclose(readfile);
-
+        FILE *readfile = fopen(argvalue[3], "w");
+        fwrite(data, 1, nbytes, readfile);
+        fclose(readfile);
+        printf("Success\n");
+    }
+    exit(EXIT_SUCCESS);
     return 0;
 }
