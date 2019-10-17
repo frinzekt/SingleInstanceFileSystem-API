@@ -23,18 +23,16 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     tailId = getFileBlockIdByName(fp, lastPathHeadDirId, tailname);
     if ((tailId == -1) || (lastPathHeadDirId == -1))
     {
-        printf("SIFS_errno: %i\n", SIFS_errno);
-        return 1;
+        return EXIT_FAILURE;
     }
     strcpy(readerfile, pathname);
 
     SIFS_FILEBLOCK target = getFileBlockById(fp, tailId);
     *nbytes = target.length;
-    printf("%lu\n", *nbytes);
     *data = malloc(*nbytes + 1);
     fseek(fp, getOffset(fp, target.firstblockID),SEEK_SET);
     fread(*data, 1, *nbytes, fp);
 
     fclose(fp);
-    return 0;
+    return EXIT_SUCCESS;
 }

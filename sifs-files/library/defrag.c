@@ -8,10 +8,118 @@
 #include "sifs-internal.h"
 #include "helper.h"
 
-int BDataShift(FILE *fp, int UblockShift, const SIFS_BIT bitmap)
-{
-    //FUNCTION THAT SHIFTS DATA BY UblockShift AMOUNT TO THE LEFT 
+//coalesces all unused blocks into a single contiguous area at the end of the volume's third section
 
+SIFS_BLOCKID getDataBlockOwner(FILE *fp, SIFS_BLOCKID dataBlockId, SIFS_BIT *bitmap, uint32_t nblocks)
+{
+    for (int i = 0; i < nblocks; i++)
+    {
+        //ITERATE OVER ALL FILEBLOCKS
+        if (bitmap[i] == SIFS_FILE)
+        {
+            SIFS_FILEBLOCK block = getFileBlockById(fp, i);
+            if (block.firstblockID == dataBlockId)
+            {
+                return i;
+            }
+        }
+    }
+    return INDEX_FAILURE; //unlikely to happen if there is a correct reading
+}
+
+SIFS_BLOCKID getEntryIndex(FILE *fp, SIFS_BLOCKID containerId, SIFS_BLOCKID entryId, uint32_t fileIndex)
+{
+    SIFS_DIRBLOCK container = getDirBlockById(fp, containerId);
+    for (int i = 0; i < container.nentries; i++)
+    {
+        if ((container.entries[i].blockID == entryId) && (container.entries[i].fileindex == fileIndex))
+        {
+            return i;
+        }
+    }
+    return INDEX_FAILURE; //CANT FIND ENTRY AND FILEINDEX IN CONTAINER
+}
+
+SIFS_BLOCKID getContainerId(FILE *fp, SIFS_BLOCKID entryID, uint32_t fileIndex, SIFS_BIT *bitmap, uint32_t nblocks)
+{
+    for (int i = 0; i < nblocks; i++) // ITERATES OVER ALL DIRECTORIES
+    {
+        if (bitmap[i] == SIFS_DIR)
+        {
+
+            if (getEntryIndex(fp, i, entryID, fileIndex) != INDEX_FAILURE)
+            {
+                //CHECK IF THE ENTRY EXIST IN THE DIR/container
+                return i;
+            }
+        }
+    }
+    return INDEX_FAILURE; //unlikely
+}
+
+bool BDataShift(FILE *fp, SIFS_BLOCKID dataBlockId, int UBlockCount, SIFS_BIT *bitmap, uint32_t nblocks)
+{
+    //DATA BLOCK SHIFTING - Datablock
+    //FUNCTION THAT SHIFTS DATA BY UblockShift AMOUNT TO THE LEFT
+    SIFS_BLOCKID fileBlockId = getDataBlockOwner(fp, dataBlockId, bitmap, nblocks);
+    SIFS_FILEBLOCK fileBlock = getFileBlockById(fp, fileBlockId);
+    SIFS_BLOCKID firstUBlock = dataBlockId - UBlockCount;
+    fileBlock.firstblockID = firstUBlock;
+
+    //REWRITE FILE BLOCK
+    modifyFileBlock(fp, firstUBlock, fileBlock);
+
+    //REWRITE BITMAP
+    for (int i = 0; i < UBlockCount; i++)
+    {
+        modifyBitmap(fp, bitmap, firstUBlock + i, SIFS_DATABLOCK); //TURN TO DATA BLOCK
+        modifyBitmap(fp, bitmap, dataBlockId + i, SIFS_UNUSED);    //TURN TO UBLOCK
+    }
+    return false; //FIXME  WHAT SHOULD THIS BE
+}
+
+bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *bitmap, uint32_t nblocks)
+{
+    //DIRECTORY AND FILE SHIFTING
+    SIFS_BLOCKID containerId = INDEX_FAILURE; // Initialization
+    SIFS_DIRBLOCK container;
+    SIFS_BLOCKID firstUBlock = entryBlockId - UBlockCount;
+
+    if (bitmap[entryBlockId] == SIFS_DIR)
+    {
+        containerId = getContainerId(fp, entryBlockId, 0, bitmap, nblocks);
+        container = getDirBlockById(fp, containerId);
+
+        // FIND THE ENTRY NUMBER
+        uint32_t entryIndex = getEntryIndex(fp, containerId, entryBlockId, 0);
+
+        container.entries[entryIndex].blockID = firstUBlock;
+        modifyDirBlock(fp, firstUBlock, container);
+        modifyBitmap(fp, bitmap, firstUBlock, SIFS_DIR); //TURN TO DATA BLOCK
+    }
+    else
+    { //FILE BLOCK
+        SIFS_FILEBLOCK fileBlock = getFileBlockById(fp, entryBlockId);
+        for (int i = 0; i < fileBlock.nfiles; i++)
+        {
+            containerId = getContainerId(fp, entryBlockId, i, bitmap, nblocks);
+            container = getDirBlockById(fp, containerId);
+
+            // FIND THE ENTRY NUMBER
+            uint32_t entryIndex = getEntryIndex(fp, containerId, entryBlockId, i);
+
+            container.entries[entryIndex].blockID = firstUBlock;
+
+            modifyDirBlock(fp, firstUBlock, container);      //UPDATE MULTIPLE CONTAINER
+            modifyBitmap(fp, bitmap, firstUBlock, SIFS_DIR); //TURN TO DATA BLOCK
+        }
+    }
+
+    //REWRITE BITMAP
+
+    modifyBitmap(fp, bitmap, entryBlockId, SIFS_UNUSED); //TURN TO UBLOCK
+
+    return false; //unlikely
 }
 
 int SIFS_defrag(const char *volumename)
@@ -19,9 +127,9 @@ int SIFS_defrag(const char *volumename)
     FILE *fp = getFileReaderPointer(volumename);
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    printf("%s\n",bitmap);
+    printf("%s\n", bitmap);
     int countU = 0;
-    int length = strlen(bitmap);
+    int length = header.nblocks;
 
     for (int i = 0; i < length; i++)
     {
@@ -29,38 +137,27 @@ int SIFS_defrag(const char *volumename)
         {
             for (int j = i; j < length; j++)
             {
-                if (bitmap[j] != SIFS_UNUSED)
+                if (bitmap[j] == SIFS_DATABLOCK)
                 {
-                    BDataShift(fp, countU, bitmap);
-                    i = j - countU;
-                    countU = 0;
+                    //FIND DATA BLOCK WHO OWNS DATABLOCK
+                    BDataShift(fp, j, countU, bitmap, length);
+                    i = j - countU; //SKIPPING TO THE NEXT UNUSED
                     break;
                 }
-                countU++;
+                else if ((bitmap[j] == SIFS_DIR) || (bitmap[j] == SIFS_FILE))
+                {
+                    //FIND CONTAINER
+                    entryShift(fp, j, countU, bitmap, length);
+                    break;
+                }
+                countU++; //CALCULATING GAP OF USED AND UNUSED
             }
+            countU = 0;
         }
-    } 
-
-    //Feel free to change (STEPS)
-        /*  
-            do a nested loop
-            outerloop finds the first U block (lets call it X) 
-                innerloop starts counting (using countU) from X until it reaches a non U block(if any)
-                    innerloop will break in 2 ways
-                        1. When countU = length - TheAmountOfTimesOuterLoopHasLooped
-                            break both inner and outer loop     
-                        OR
-                        2. If non U block is found: 
-                            start defragging(maybe a separate function)
-                            TheAmountOfTimesOuterLoopHasLooped = TheAmountOfTimesOuterLoopHasLooped - countU
-                            break
-                            continue loop
-                        
-        */
+    }
 
     SIFS_errno = SIFS_ENOTYET;
 
     fclose(fp);
-    return 0;
+    return EXIT_SUCCESS;
 }
-
