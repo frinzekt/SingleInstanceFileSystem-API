@@ -138,6 +138,7 @@ SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const ch
             {
                 return entryblockID;
             }
+            SIFS_errno = SIFS_EOK;
         }
         else if (bitmap[entryblockID] == SIFS_FILE)
         {
@@ -285,18 +286,26 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
             if (bitmap[i] == SIFS_UNUSED)
             {
                 len_ubit++;
+                printf("DETAILS %d len_ubit %d and nblocks %d and nblocks_req %d\n", i, len_ubit, nblocks, nblocks_req);
                 if (len_ubit == nblocks_req)
                 {
                     return start;
+                }
+                else if (len_ubit)
+                {
                 }
             }
             else
             {
                 start += len_ubit;
                 len_ubit = 0;
-
                 break;
             }
+        }
+        printf("DETAILS len_ubit %d and nblocks %d and nblocks_req %d\n", len_ubit, nblocks - 1, nblocks_req);
+        if (len_ubit >= nblocks - 1) //nblocks-1 is the failure value of the loop without resetting to else block
+        {                            //NOT ENOUGH SPACE
+            return INDEX_FAILURE;
         }
     } while (start != INDEX_FAILURE);
     return INDEX_FAILURE;

@@ -130,7 +130,6 @@ int SIFS_defrag(const char *volumename)
     FILE *fp = getFileReaderPointer(volumename);
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    printf("%s\n", bitmap);
     int countU = 0;
     int length = header.nblocks;
 
