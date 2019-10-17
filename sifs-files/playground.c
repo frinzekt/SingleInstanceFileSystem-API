@@ -16,7 +16,7 @@
 int main(int argcount, char *argvalue[])
 {
     // Check the number of command-line arguments
-    if (argcount < 3)
+    if (argcount < 2)
     {
         fprintf(stderr, "Usage: %s value1 [value2 ...]\n", argvalue[0]);
         exit(EXIT_FAILURE); // Exit indicating failure
@@ -24,7 +24,7 @@ int main(int argcount, char *argvalue[])
     else
     {
         //CHANGE WHATEVER IS IN HERE
-        SIFS_mkdir(argvalue[1], argvalue[2]);
+        SIFS_defrag(argvalue[1]);
     }
     return 0;
 }
