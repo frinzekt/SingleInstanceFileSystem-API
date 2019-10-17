@@ -2,7 +2,7 @@
    Name(s):             Frinze Lapuz, Thye Shan Ng
    Student number(s):   22711649, 22727425
  */
-#include <stdio.h> //REVIEW
+#include <stdio.h> 
 #include "sifs-internal.h"
 #include "helper.h"
 
@@ -22,7 +22,7 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
     }
 
     if (!writeDirBlock(fp, containerId, tail))
-    { //ERROR CHECKS
+    {   //ERROR CHECKS
         return EXIT_FAILURE;
     }
 

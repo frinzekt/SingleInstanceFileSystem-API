@@ -16,9 +16,9 @@
 int main(int argcount, char *argvalue[])
 {
     // Check the number of command-line arguments
-    if (argcount < 3)
+    if (argcount != 3)
     {
-        fprintf(stderr, "Usage: %s value1 [value2 ...]\n", argvalue[0]);
+        fprintf(stderr, "Usage: %s [VolumeName] [PathName]\n", argvalue[0]);
         exit(EXIT_FAILURE); // Exit indicating failure
     }
     else

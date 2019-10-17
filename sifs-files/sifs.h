@@ -58,3 +58,5 @@ extern int SIFS_errno;
 //  DESCRIBING THE LAST ERROR ENCOUNTERED.
 //  IF PROVIDED WITH A NON-NULL PREFIX, IT IS PRINTED BEFORE THE MESSAGE
 extern void SIFS_perror(const char *prefix);
+
+extern int SIFS_defrag(const char *volumename);

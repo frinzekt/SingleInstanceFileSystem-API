@@ -24,15 +24,16 @@ typedef struct
     char subPathArray[MAX_NUM_SUBDIRECTORIES][SIFS_MAX_NAME_LENGTH];
 } PATH;
 
-//Returns a path structure containing subpath in Array the length of the array
+//RETURNS A PATH STRUCTURE CONTAINING SUBPATH IN ARRAY THE LENGTH OF THE ARRAY
 extern PATH getSplitPath(const char *pathname);
-//GETS FILE READER POINTER, you still need to close the filepointer after use
+//GETS FILE READER POINTER, YOU STILL NEED TO CLOSE THE FILEPOINTER AFTER USE
 extern FILE *getFileReaderPointer(const char *volumename);
 extern FILE *getFileWriterPointer(const char *volumename); //FIXME
 
-// NOTE  ALL THE FUNCTION REQUIRING FILE *fp will require that fp is not NULL and is open
+//ALL THE FUNCTION REQUIRING FILE *fp will require that fp is not NULL and is open
 extern SIFS_VOLUME_HEADER getHeader(FILE *fp);
 extern SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header);
+extern bool modifyBitmap(FILE *fp, SIFS_BIT *bitmap, SIFS_BLOCKID blockId, char bit);
 
 //Returns -1 for NON-EXISTENT DIRECTORY, otherwise returns BlockID
 extern SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const char *dirname);
@@ -42,9 +43,6 @@ extern uint32_t getFileBlockIndexByName(FILE *fp, SIFS_BLOCKID currentBlockID, c
 extern SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern SIFS_FILEBLOCK getFileBlockById(FILE *fp, SIFS_BLOCKID currentBlockID);
 extern char *getBlockNameById(FILE *fp, SIFS_BLOCKID currentBlockID, uint32_t fileindex);
-// eg. a/b/c.h
-// a/b is the head
-// b is the last head
 extern SIFS_BLOCKID getDirBlockIdBeforePathEnds(FILE *fp, const char *pathname);
 
 extern int getOffset(FILE *fp, SIFS_BLOCKID id);
@@ -56,9 +54,9 @@ extern char *getPathTail(const char *pathname);
 
 //Unused Blocks
 //FIXME
-extern uint32_t getNoBlockRequirement(size_t length, uint32_t block_size);                            // Converts length to number of blocks
-extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start);                            //RETURNS -1 on failure (if no unused)
-extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req); //Calls Unused BlockID and returns -1 on failure
+extern uint32_t getNoBlockRequirement(size_t length, uint32_t block_size);                                              // Converts length to number of blocks
+extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start, uint32_t nblocks);                                              //RETURNS -1 on failure (if no unused)
+extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req, uint32_t nblocks); //Calls Unused BlockID and returns -1 on failure
 
 // RETURNS TRUE/FALSE ON SUCCESS/FAIL
 // CAN FAIL IF THERE IS NOT ENOUGH LENGTH
