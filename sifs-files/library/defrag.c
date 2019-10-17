@@ -10,7 +10,7 @@
 
 int BDataShift(FILE *fp, int UblockShift)
 {
-    //FUNCTION THAT SHIFTS DATA BY UblockShift AMOUNT TO THE RIGHT
+    //FUNCTION THAT SHIFTS DATA BY UblockShift AMOUNT TO THE LEFT 
 
 }
 
@@ -23,21 +23,23 @@ int SIFS_defrag(const char *volumename)
     int countU = 0;
     int length = strlen(bitmap);
 
-    /*for (int i = 0; i < length; i++)
+    for (int i = 0; i < length; i++)
     {
         if (bitmap[i] == SIFS_UNUSED)
         {
             for (int j = i; j < length; j++)
             {
-                if (bitmap[i] != SIFS_UNUSED)
+                if (bitmap[j] != SIFS_UNUSED)
                 {
-                    
+                    BDataShift(fp, countU);
                     i = j - countU;
+                    countU = 0;
+                    break;
                 }
                 countU++;
             }
         }
-    } */
+    } 
 
     //Feel free to change (STEPS)
         /*  
