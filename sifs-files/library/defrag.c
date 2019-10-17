@@ -101,6 +101,7 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
     { //FILE BLOCK
         SIFS_FILEBLOCK fileBlock = getFileBlockById(fp, entryBlockId);
         modifyFileBlock(fp, firstUBlock, fileBlock);
+        modifyBitmap(fp, bitmap, firstUBlock, SIFS_FILE); //TURN TO =FILE BLOCK
         for (int i = 0; i < fileBlock.nfiles; i++)
         {
             containerId = getContainerId(fp, entryBlockId, i, bitmap, nblocks);
@@ -111,8 +112,7 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
 
             container.entries[entryIndex].blockID = firstUBlock;
 
-            modifyDirBlock(fp, containerId, container);      //UPDATE MULTIPLE CONTAINER
-            modifyBitmap(fp, bitmap, firstUBlock, SIFS_DIR); //TURN TO DATA BLOCK
+            modifyDirBlock(fp, containerId, container); //UPDATE MULTIPLE CONTAINER
         }
     }
 
