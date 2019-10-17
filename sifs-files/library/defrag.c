@@ -23,11 +23,14 @@ int SIFS_defrag(const char *volumename)
             outerloop finds the first U block (lets call it X) 
                 innerloop starts counting (using countU) from X until it reaches a non U block(if any)
                     innerloop will break in 2 ways
-                        1. When countU = length - TheAmountOfTimesOuterLoopHasLooped OR
+                        1. When countU = length - TheAmountOfTimesOuterLoopHasLooped
+                            break both inner and outer loop     
+                        OR
                         2. If non U block is found: 
                             start defragging(maybe a separate function)
                             TheAmountOfTimesOuterLoopHasLooped = TheAmountOfTimesOuterLoopHasLooped - countU
                             break
+                            continue loop
                         
         */
 
