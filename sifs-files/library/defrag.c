@@ -87,6 +87,7 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
 
     if (bitmap[entryBlockId] == SIFS_DIR)
     {
+        SIFS_DIRBLOCK dirBlock = getDirBlockById(fp, entryBlockId);
         containerId = getContainerId(fp, entryBlockId, 0, bitmap, nblocks);
         container = getDirBlockById(fp, containerId);
 
@@ -94,7 +95,8 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
         uint32_t entryIndex = getEntryIndex(fp, containerId, entryBlockId, 0);
 
         container.entries[entryIndex].blockID = firstUBlock;
-        modifyDirBlock(fp, firstUBlock, container);
+        modifyDirBlock(fp, containerId, container);
+        modifyDirBlock(fp, firstUBlock, dirBlock);
         modifyBitmap(fp, bitmap, firstUBlock, SIFS_DIR); //TURN TO DATA BLOCK
     }
     else
