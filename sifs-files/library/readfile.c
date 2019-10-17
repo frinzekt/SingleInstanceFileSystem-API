@@ -30,7 +30,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     SIFS_FILEBLOCK target = getFileBlockById(fp, tailId);
     *nbytes = target.length;
     *data = malloc(*nbytes + 1);
-    fseek(fp, getOffset(fp, target.firstblockID),SEEK_SET);
+    fseek(fp, getOffset(fp, target.firstblockID), SEEK_SET);
     fread(*data, 1, *nbytes, fp);
 
     fclose(fp);
