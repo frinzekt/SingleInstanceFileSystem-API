@@ -8,6 +8,12 @@
 #include "sifs-internal.h"
 #include "helper.h"
 
+int BDataShift(FILE *fp, int UblockShift)
+{
+    //FUNCTION THAT SHIFTS DATA BY UblockShift AMOUNT TO THE RIGHT
+
+}
+
 int SIFS_defrag(const char *volumename)
 {
     FILE *fp = getFileReaderPointer(volumename);
@@ -16,6 +22,22 @@ int SIFS_defrag(const char *volumename)
     printf("%s\n",bitmap);
     int countU = 0;
     int length = strlen(bitmap);
+
+    /*for (int i = 0; i < length; i++)
+    {
+        if (bitmap[i] == SIFS_UNUSED)
+        {
+            for (int j = i; j < length; j++)
+            {
+                if (bitmap[i] != SIFS_UNUSED)
+                {
+                    
+                    i = j - countU;
+                }
+                countU++;
+            }
+        }
+    } */
 
     //Feel free to change (STEPS)
         /*  
