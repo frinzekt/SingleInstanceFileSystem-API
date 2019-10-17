@@ -55,7 +55,7 @@ extern char *getPathTail(const char *pathname);
 //Unused Blocks
 //FIXME
 extern uint32_t getNoBlockRequirement(size_t length, uint32_t block_size);                                              // Converts length to number of blocks
-extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start);                                              //RETURNS -1 on failure (if no unused)
+extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start, uint32_t nblocks);                                              //RETURNS -1 on failure (if no unused)
 extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req, uint32_t nblocks); //Calls Unused BlockID and returns -1 on failure
 
 // RETURNS TRUE/FALSE ON SUCCESS/FAIL
