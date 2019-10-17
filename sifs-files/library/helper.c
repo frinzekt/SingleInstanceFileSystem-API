@@ -464,7 +464,11 @@ bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *fileName,
     if (!IsDuplicate) //GET IDs and Spaces
     {
         currentBlockId = getNextUBlockId(bitmap, START);
-        firstDataBlockId = getNextUBlockIdWithLength(bitmap, currentBlockId + 1, noRequiredBlocks, header.nblocks);
+        firstDataBlockId = getNextUBlockIdWithLength(bitmap, START, noRequiredBlocks, header.nblocks);
+        if (firstDataBlockId == currentBlockId)
+        {
+            firstDataBlockId = getNextUBlockIdWithLength(bitmap, START + 1, noRequiredBlocks, header.nblocks);
+        }
         //SPACE ERROR CHECK
         if ((currentBlockId == INDEX_FAILURE) || (firstDataBlockId == INDEX_FAILURE))
         {
