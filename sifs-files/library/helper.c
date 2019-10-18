@@ -59,6 +59,7 @@ SIFS_BIT *getBitmapPtr(FILE *fp, SIFS_VOLUME_HEADER header)
     fseek(fp, sizeof(header), SEEK_SET);
     fread(bitmap, 1, header.nblocks, fp);
 
+    //CHECKS FOR NON-VOL FILES
     if (bitmap[0] != SIFS_UNUSED || bitmap[0] != SIFS_DIR || bitmap[0] != SIFS_FILE || bitmap[0] != SIFS_DATABLOCK)
     {
         SIFS_errno = SIFS_ENOTVOL;
