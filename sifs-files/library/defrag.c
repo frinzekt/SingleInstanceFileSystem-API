@@ -70,7 +70,6 @@ bool BDataShift(FILE *fp, SIFS_BLOCKID dataBlockId, int UBlockCount, SIFS_BIT *b
     void *data = malloc(fileBlock.length + 1);
     fseek(fp, getOffset(fp, fileBlock.firstblockID), SEEK_SET);
     fread(data, fileBlock.length, 1, fp);
-    printf("FILEEBLOCK LENGTH: %d - %ld at %d\n", fileBlock.firstblockID, fileBlock.length, getOffset(fp, fileBlock.firstblockID));
 
     //UPDATE FILE BLOCK
     int noOfDatablocks = getNoBlockRequirement(fileBlock.length, header.blocksize);
@@ -78,22 +77,17 @@ bool BDataShift(FILE *fp, SIFS_BLOCKID dataBlockId, int UBlockCount, SIFS_BIT *b
     //REWRITE FILE BLOCK
     modifyFileBlock(fp, fileBlockId, fileBlock);
 
-    printf("MOVEMENT FROM %d TO %d\n", dataBlockId, firstUBlock);
-
     //REWRITE DATA BLOCK
     fseek(fp, getOffset(fp, firstUBlock), SEEK_SET);
     fwrite(data, fileBlock.length, 1, fp);
-    printf("FILEEBLOCK write: %d - %ld at %d\n", firstUBlock, fileBlock.length, getOffset(fp, firstUBlock));
 
-    //FIXME DATA BLOCK MOVEMENT
     //REWRITE BITMAP
-    printf("UBLOCK COUNT %d\n", UBlockCount);
     for (int i = 0; i < noOfDatablocks; i++)
     {
         modifyBitmap(fp, bitmap, firstUBlock + i, SIFS_DATABLOCK); //TURN TO DATA BLOCK
         modifyBitmap(fp, bitmap, dataBlockId + i, SIFS_UNUSED);    //TURN TO UBLOCK
     }
-    return false; //FIXME  WHAT SHOULD THIS BE
+    return false;
 }
 
 bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *bitmap)
@@ -136,7 +130,6 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
             modifyDirBlock(fp, containerId, container); //UPDATE MULTIPLE CONTAINER
         }
     }
-    printf("MOVEMENT FROM %d TO %d\n", entryBlockId, firstUBlock);
 
     //REWRITE BITMAP
 
@@ -148,12 +141,14 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
 int SIFS_defrag(const char *volumename)
 {
     FILE *fp = getFileWriterPointer(volumename);
+    //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
     CHECK_VOLUME_EXIST
+    CHECK_VALID_VOLUME
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     int countU = 0;
     int length = header.nblocks;
-
+    
     for (int i = 0; i < length; i++)
     {
         if (bitmap[i] == SIFS_UNUSED)
@@ -166,8 +161,7 @@ int SIFS_defrag(const char *volumename)
                     BDataShift(fp, j, countU, bitmap);
                     i = j - countU;                    //SKIPPING TO THE NEXT UNUSED
                     bitmap = getBitmapPtr(fp, header); //UPDATE NEW BITMAP
-                    printf("Bitmap %s\n", bitmap);
-                    printf("NEXT UNUSED %d\n", i);
+
                     break;
                 }
                 else if ((bitmap[j] == SIFS_DIR) || (bitmap[j] == SIFS_FILE))
@@ -175,8 +169,7 @@ int SIFS_defrag(const char *volumename)
                     //FIND CONTAINER
                     entryShift(fp, j, countU, bitmap);
                     bitmap = getBitmapPtr(fp, header); //UPDATE NEW BITMAP
-                    printf("Bitmap %s\n", bitmap);
-                    printf("NEXT UNUSED %d\n", i + 1);
+
                     break;
                 }
                 countU++; //CALCULATING GAP OF USED AND UNUSED
@@ -184,8 +177,6 @@ int SIFS_defrag(const char *volumename)
             countU = 0;
         }
     }
-
-    SIFS_errno = SIFS_ENOTYET;
 
     fclose(fp);
     return EXIT_SUCCESS;
