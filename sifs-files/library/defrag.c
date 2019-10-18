@@ -87,7 +87,7 @@ bool BDataShift(FILE *fp, SIFS_BLOCKID dataBlockId, int UBlockCount, SIFS_BIT *b
         modifyBitmap(fp, bitmap, firstUBlock + i, SIFS_DATABLOCK); //TURN TO DATA BLOCK
         modifyBitmap(fp, bitmap, dataBlockId + i, SIFS_UNUSED);    //TURN TO UBLOCK
     }
-    return false; 
+    return false;
 }
 
 bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *bitmap)
@@ -141,13 +141,11 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
 int SIFS_defrag(const char *volumename)
 {
     FILE *fp = getFileWriterPointer(volumename);
-    CHECK_VOLUME_EXIST
+    //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
+CHECK_VOLUME_EXIST
+CHECK_VALID_VOLUME
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
-    if (SIFS_errno == SIFS_ENOTVOL) //CHECK IF IT'S A VALID VOLUME
-    {
-        return EXIT_FAILURE;
-    }
     int countU = 0;
     int length = header.nblocks;
 

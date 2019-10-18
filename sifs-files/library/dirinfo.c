@@ -20,7 +20,9 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime)
 {
     FILE *fp = getFileReaderPointer(volumename);
-    CHECK_VOLUME_EXIST
+    //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
+CHECK_VOLUME_EXIST
+CHECK_VALID_VOLUME
 
     SIFS_BLOCKID tailId;
     SIFS_BLOCKID lastPathHeadDirId = 0;

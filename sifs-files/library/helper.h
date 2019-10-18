@@ -9,15 +9,25 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define MAX_NUM_SUBDIRECTORIES 24 
+#define MAX_NUM_SUBDIRECTORIES 24
 #define MAX_PATH_NAME MAX_NUM_SUBDIRECTORIES *SIFS_MAX_NAME_LENGTH
 #define INDEX_FAILURE -1 //CUSTOM FAILURE OF FUNCTION
-#define CHECK_VOLUME_EXIST   \
-    if (fp == NULL)          \
-    {                        \
-        SIFS_errno = 3;      \
-        return EXIT_FAILURE; \
+#define CHECK_VOLUME_EXIST        \
+    if (fp == NULL)               \
+    {                             \
+        SIFS_errno = SIFS_ENOVOL; \
+        return EXIT_FAILURE;      \
     }
+
+#define CHECK_VALID_VOLUME                                                                                                  \
+    SIFS_VOLUME_HEADER header = getHeader(fp);                                                                              \
+    SIFS_BIT *bitCheck = getBitmapPtr(fp, header);                                                                          \
+    if (bitcheck[0] != SIFS_UNUSED && bitcheck[0] != SIFS_DIR && bitcheck[0] != SIFS_FILE && bitcheck[0] != SIFS_DATABLOCK) \
+    {                                                                                                                       \
+        SIFS_errno = SIFS_ENOTVOL;                                                                                          \
+        return EXIT_FAILURE;                                                                                                \
+    }
+
 typedef struct
 {
     int numSubDir;
@@ -28,7 +38,7 @@ typedef struct
 extern PATH getSplitPath(const char *pathname);
 //GETS FILE READER POINTER, YOU STILL NEED TO CLOSE THE FILEPOINTER AFTER USE
 extern FILE *getFileReaderPointer(const char *volumename);
-extern FILE *getFileWriterPointer(const char *volumename); 
+extern FILE *getFileWriterPointer(const char *volumename);
 
 //ALL THE FUNCTION REQUIRING FILE *fp will require that fp is not NULL and is open
 extern SIFS_VOLUME_HEADER getHeader(FILE *fp);
@@ -54,7 +64,7 @@ extern char *getPathTail(const char *pathname);
 
 //Unused Blocks
 extern uint32_t getNoBlockRequirement(size_t length, uint32_t block_size);                                              // Converts length to number of blocks
-extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start, uint32_t nblocks);                                              //RETURNS -1 on failure (if no unused)
+extern SIFS_BLOCKID getNextUBlockId(SIFS_BIT *bitmap, SIFS_BLOCKID start, uint32_t nblocks);                            //RETURNS -1 on failure (if no unused)
 extern SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int nblocks_req, uint32_t nblocks); //Calls Unused BlockID and returns -1 on failure
 
 // RETURNS TRUE/FALSE ON SUCCESS/FAIL

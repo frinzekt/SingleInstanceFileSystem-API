@@ -12,7 +12,9 @@ int SIFS_readfile(const char *volumename, const char *pathname,
                   void **data, size_t *nbytes)
 {
     FILE *fp = getFileReaderPointer(volumename);
-    CHECK_VOLUME_EXIST
+    //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
+CHECK_VOLUME_EXIST
+CHECK_VALID_VOLUME
     SIFS_BLOCKID tailId;
     SIFS_BLOCKID lastPathHeadDirId;
     char readerfile[SIFS_MAX_NAME_LENGTH];
