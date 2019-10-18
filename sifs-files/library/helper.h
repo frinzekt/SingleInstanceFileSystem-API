@@ -20,9 +20,9 @@
     }
 
 #define CHECK_VALID_VOLUME                                                                                                  \
-    SIFS_VOLUME_HEADER header = getHeader(fp);                                                                              \
-    SIFS_BIT *bitCheck = getBitmapPtr(fp, header);                                                                          \
-    if (bitcheck[0] != SIFS_UNUSED && bitcheck[0] != SIFS_DIR && bitcheck[0] != SIFS_FILE && bitcheck[0] != SIFS_DATABLOCK) \
+    SIFS_VOLUME_HEADER headerCheck = getHeader(fp);                                                                         \
+    SIFS_BIT *bitCheck = getBitmapPtr(fp, headerCheck);                                                                     \
+    if (bitCheck[0] != SIFS_UNUSED && bitCheck[0] != SIFS_DIR && bitCheck[0] != SIFS_FILE && bitCheck[0] != SIFS_DATABLOCK) \
     {                                                                                                                       \
         SIFS_errno = SIFS_ENOTVOL;                                                                                          \
         return EXIT_FAILURE;                                                                                                \
