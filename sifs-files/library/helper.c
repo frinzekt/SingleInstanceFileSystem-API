@@ -93,7 +93,6 @@ int getOffset(FILE *fp, SIFS_BLOCKID id)
 SIFS_DIRBLOCK getDirBlockById(FILE *fp, SIFS_BLOCKID currentBlockId)
 {
     SIFS_VOLUME_HEADER header = getHeader(fp);
-    //SIFS_BIT *bitmap = getBitmapPtr(fp, header); //REVIEW , Assume IS DIRBLOCK
     SIFS_DIRBLOCK *blockptr = malloc(header.blocksize + 1);
 
     int offset = getOffset(fp, currentBlockId);
@@ -138,15 +137,10 @@ SIFS_BLOCKID getDirBlockIdByName(FILE *fp, SIFS_BLOCKID currentBlockID, const ch
             {
                 return entryblockID;
             }
-            SIFS_errno = SIFS_EOK;
         }
-        else if (bitmap[entryblockID] == SIFS_FILE)
-        {
-            SIFS_errno = SIFS_ENOTDIR;
-        }
+
     }
-    if (SIFS_errno == SIFS_EOK)
-        SIFS_errno = SIFS_ENOENT;
+    SIFS_errno = SIFS_ENOENT;
 
     return INDEX_FAILURE; // NON-EXISTENT DIRECTORY AT DIRECTORY
 }
@@ -179,7 +173,7 @@ uint32_t getFileBlockIndexByName(FILE *fp, SIFS_BLOCKID currentBlockID, const ch
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     SIFS_DIRBLOCK currentBlock = getDirBlockById(fp, currentBlockID);
-
+    
     for (int i = 0; i < currentBlock.nentries; i++)
     {
         SIFS_BLOCKID entryblockID = currentBlock.entries[i].blockID;

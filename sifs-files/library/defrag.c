@@ -70,7 +70,6 @@ bool BDataShift(FILE *fp, SIFS_BLOCKID dataBlockId, int UBlockCount, SIFS_BIT *b
     void *data = malloc(fileBlock.length + 1);
     fseek(fp, getOffset(fp, fileBlock.firstblockID), SEEK_SET);
     fread(data, fileBlock.length, 1, fp);
-    printf("FILEEBLOCK LENGTH: %d - %ld at %d\n", fileBlock.firstblockID, fileBlock.length, getOffset(fp, fileBlock.firstblockID));
 
     //UPDATE FILE BLOCK
     int noOfDatablocks = getNoBlockRequirement(fileBlock.length, header.blocksize);
@@ -78,22 +77,17 @@ bool BDataShift(FILE *fp, SIFS_BLOCKID dataBlockId, int UBlockCount, SIFS_BIT *b
     //REWRITE FILE BLOCK
     modifyFileBlock(fp, fileBlockId, fileBlock);
 
-    printf("MOVEMENT FROM %d TO %d\n", dataBlockId, firstUBlock);
-
     //REWRITE DATA BLOCK
     fseek(fp, getOffset(fp, firstUBlock), SEEK_SET);
     fwrite(data, fileBlock.length, 1, fp);
-    printf("FILEEBLOCK write: %d - %ld at %d\n", firstUBlock, fileBlock.length, getOffset(fp, firstUBlock));
 
-    //FIXME DATA BLOCK MOVEMENT
     //REWRITE BITMAP
-    printf("UBLOCK COUNT %d\n", UBlockCount);
     for (int i = 0; i < noOfDatablocks; i++)
     {
         modifyBitmap(fp, bitmap, firstUBlock + i, SIFS_DATABLOCK); //TURN TO DATA BLOCK
         modifyBitmap(fp, bitmap, dataBlockId + i, SIFS_UNUSED);    //TURN TO UBLOCK
     }
-    return false; //FIXME  WHAT SHOULD THIS BE
+    return false; 
 }
 
 bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *bitmap)
