@@ -12,8 +12,8 @@ int SIFS_writefile(const char *volumename, const char *pathname,
 {
     FILE *fp = getFileReaderPointer(volumename);
     //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
-CHECK_VOLUME_EXIST
-CHECK_VALID_VOLUME
+    CHECK_VOLUME_EXIST
+    CHECK_VALID_VOLUME
 
     SIFS_BLOCKID containerId = getDirBlockIdBeforePathEnds(fp, pathname);
     char *tail = getPathTail(pathname);

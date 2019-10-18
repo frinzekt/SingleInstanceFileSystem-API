@@ -142,8 +142,8 @@ int SIFS_defrag(const char *volumename)
 {
     FILE *fp = getFileWriterPointer(volumename);
     //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
-CHECK_VOLUME_EXIST
-CHECK_VALID_VOLUME
+    CHECK_VOLUME_EXIST
+    CHECK_VALID_VOLUME
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     int countU = 0;

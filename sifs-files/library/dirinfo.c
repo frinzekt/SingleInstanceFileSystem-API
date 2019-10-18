@@ -21,8 +21,8 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
 {
     FILE *fp = getFileReaderPointer(volumename);
     //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
-CHECK_VOLUME_EXIST
-CHECK_VALID_VOLUME
+    CHECK_VOLUME_EXIST
+    CHECK_VALID_VOLUME
 
     SIFS_BLOCKID tailId;
     SIFS_BLOCKID lastPathHeadDirId = 0;
@@ -33,7 +33,6 @@ CHECK_VALID_VOLUME
         lastPathHeadDirId = getDirBlockIdBeforePathEnds(fp, pathname);
         char *tailname = getPathTail(pathname);
         tailId = getDirBlockIdByName(fp, lastPathHeadDirId, tailname);
-
     }
     else
     {
@@ -44,7 +43,7 @@ CHECK_VALID_VOLUME
     {
         return EXIT_FAILURE;
     }
-    
+
     SIFS_DIRBLOCK block = getDirBlockById(fp, tailId);
     *nentries = block.nentries;
     *modtime = block.modtime;
@@ -56,7 +55,7 @@ CHECK_VALID_VOLUME
         char *name = getBlockNameById(fp, block.entries[i].blockID, block.entries[i].fileindex);
         found[i] = strdup(name);
     }
-    
+
     *entrynames = found;
     fclose(fp);
     return EXIT_SUCCESS;

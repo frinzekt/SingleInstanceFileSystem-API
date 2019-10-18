@@ -2,7 +2,7 @@
    Name(s):             Frinze Lapuz, Thye Shan Ng
    Student number(s):   22711649, 22727425
  */
-#include <stdio.h> 
+#include <stdio.h>
 #include "sifs-internal.h"
 #include "helper.h"
 
@@ -11,8 +11,8 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
 {
     FILE *fp = getFileReaderPointer(volumename);
     //PRE-PROCESSING ERROR CHECK - will return EXIT_FAILURE IN THE SCOPE OF THE API
-CHECK_VOLUME_EXIST
-CHECK_VALID_VOLUME
+    CHECK_VOLUME_EXIST
+    CHECK_VALID_VOLUME
 
     SIFS_BLOCKID containerId = getDirBlockIdBeforePathEnds(fp, pathname);
     char *tail = getPathTail(pathname);
@@ -24,7 +24,7 @@ CHECK_VALID_VOLUME
     }
 
     if (!writeDirBlock(fp, containerId, tail))
-    {   //ERROR CHECKS
+    { //ERROR CHECKS
         return EXIT_FAILURE;
     }
 
