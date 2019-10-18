@@ -148,7 +148,7 @@ int SIFS_defrag(const char *volumename)
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
     int countU = 0;
     int length = header.nblocks;
-
+    
     for (int i = 0; i < length; i++)
     {
         if (bitmap[i] == SIFS_UNUSED)
@@ -177,8 +177,6 @@ int SIFS_defrag(const char *volumename)
             countU = 0;
         }
     }
-
-    SIFS_errno = SIFS_ENOTYET;
 
     fclose(fp);
     return EXIT_SUCCESS;
