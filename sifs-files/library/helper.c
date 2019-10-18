@@ -301,7 +301,6 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
             if (bitmap[i] == SIFS_UNUSED)
             {
                 len_ubit++;
-                printf("DETAILS %d len_ubit %d and nblocks %d and nblocks_req %d\n", i, len_ubit, nblocks, nblocks_req);
                 if (len_ubit == nblocks_req)
                 {
                     return start;
@@ -317,7 +316,6 @@ SIFS_BLOCKID getNextUBlockIdWithLength(SIFS_BIT *bitmap, SIFS_BLOCKID start, int
                 break;
             }
         }
-        printf("DETAILS len_ubit %d and nblocks %d and nblocks_req %d\n", len_ubit, nblocks - 1, nblocks_req);
         if (len_ubit >= nblocks - 1) //nblocks-1 is the failure value of the loop without resetting to else block
         {                            //NOT ENOUGH SPACE
             return INDEX_FAILURE;
@@ -500,7 +498,6 @@ bool writeFileBlock(FILE *fp, SIFS_BLOCKID dirContainerId, const char *fileName,
     {
         currentBlockId = getNextUBlockId(bitmap, START, header.nblocks);
         firstDataBlockId = getNextUBlockIdWithLength(bitmap, START, noRequiredBlocks, header.nblocks);
-        //printf("CURRENT BLOCK%i \n", currentBlockId);
 
         if (firstDataBlockId == currentBlockId) //START NEXT AFTER CURRENT BLOCK
         {

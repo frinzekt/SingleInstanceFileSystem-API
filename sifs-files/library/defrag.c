@@ -130,7 +130,6 @@ bool entryShift(FILE *fp, SIFS_BLOCKID entryBlockId, int UBlockCount, SIFS_BIT *
             modifyDirBlock(fp, containerId, container); //UPDATE MULTIPLE CONTAINER
         }
     }
-    printf("MOVEMENT FROM %d TO %d\n", entryBlockId, firstUBlock);
 
     //REWRITE BITMAP
 
@@ -160,8 +159,7 @@ int SIFS_defrag(const char *volumename)
                     BDataShift(fp, j, countU, bitmap);
                     i = j - countU;                    //SKIPPING TO THE NEXT UNUSED
                     bitmap = getBitmapPtr(fp, header); //UPDATE NEW BITMAP
-                    printf("Bitmap %s\n", bitmap);
-                    printf("NEXT UNUSED %d\n", i);
+
                     break;
                 }
                 else if ((bitmap[j] == SIFS_DIR) || (bitmap[j] == SIFS_FILE))
@@ -169,8 +167,7 @@ int SIFS_defrag(const char *volumename)
                     //FIND CONTAINER
                     entryShift(fp, j, countU, bitmap);
                     bitmap = getBitmapPtr(fp, header); //UPDATE NEW BITMAP
-                    printf("Bitmap %s\n", bitmap);
-                    printf("NEXT UNUSED %d\n", i + 1);
+
                     break;
                 }
                 countU++; //CALCULATING GAP OF USED AND UNUSED
