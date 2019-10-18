@@ -144,6 +144,10 @@ int SIFS_defrag(const char *volumename)
     CHECK_VOLUME_EXIST
     SIFS_VOLUME_HEADER header = getHeader(fp);
     SIFS_BIT *bitmap = getBitmapPtr(fp, header);
+    if (SIFS_errno == SIFS_ENOTVOL) //CHECK IF IT'S A VALID VOLUME
+    {
+        return EXIT_FAILURE;
+    }
     int countU = 0;
     int length = header.nblocks;
 
